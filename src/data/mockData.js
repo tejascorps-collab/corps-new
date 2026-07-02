@@ -327,23 +327,59 @@ export const teamMembers = [
 export const portalInvestor = {
   name: 'Dubai Capital Group',
   kyc: 'Verified',
+  rm: 'Priya Nair',
+  memberSince: 'Mar 2024',
+  riskProfile: 'Moderate–Aggressive',
   portfolioValue: '₹53.20 Cr',
   invested: '₹45.00 Cr',
   currentRoi: '18.5%',
   profitBooked: '₹4.85 Cr',
   holdings: [
-    { asset: 'Prime Commercial Tower', type: 'Property', invested: '₹20.00 Cr', current: '₹24.10 Cr', roi: '18.5%' },
-    { asset: 'UrbanNest Township', type: 'FDI Project', invested: '₹15.00 Cr', current: '₹17.60 Cr', roi: '17.3%' },
-    { asset: 'Palm Beach Resort', type: 'Property', invested: '₹10.00 Cr', current: '₹11.50 Cr', roi: '15.0%' },
+    { asset: 'Prime Commercial Tower', type: 'Property', invested: '₹20.00 Cr', current: '₹24.10 Cr', roi: '18.5%', progress: 100 },
+    { asset: 'UrbanNest Township', type: 'FDI Project', invested: '₹15.00 Cr', current: '₹17.60 Cr', roi: '17.3%', progress: 100 },
+    { asset: 'Palm Beach Resort', type: 'Property', invested: '₹10.00 Cr', current: '₹11.50 Cr', roi: '15.0%', progress: 100 },
+  ],
+  // Allocation by sector (% of portfolio) — for the donut chart.
+  allocation: [
+    { name: 'Real Estate', value: 64, color: '#f59e0b' },
+    { name: 'Infrastructure', value: 22, color: '#3b82f6' },
+    { name: 'Healthcare', value: 9, color: '#2ec4b6' },
+    { name: 'Automotive', value: 5, color: '#8b5cf6' },
+  ],
+  // Portfolio value (AUM) & profit booked over recent months.
+  performance: [
+    { month: 'Jan', aum: 45.0, profit: 1.2 },
+    { month: 'Feb', aum: 46.4, profit: 1.8 },
+    { month: 'Mar', aum: 47.9, profit: 2.4 },
+    { month: 'Apr', aum: 49.6, profit: 3.1 },
+    { month: 'May', aum: 51.3, profit: 3.9 },
+    { month: 'Jun', aum: 53.2, profit: 4.85 },
   ],
   requests: [
     { type: 'New Investment', detail: 'Jurong Industrial Park — ₹8 Cr', date: '2026-06-28', status: 'Under Review' },
     { type: 'Withdrawal', detail: 'Partial exit — Green Valley', date: '2026-06-15', status: 'Approved' },
   ],
   opportunities: [
-    { name: 'Fabrik EV Plant', sector: 'Automotive', roi: '19%', min: '₹5 Cr' },
-    { name: 'MediCore R&D Center', sector: 'Healthcare', roi: '24%', min: '₹3 Cr' },
-    { name: 'Hillcrest Villas Phase 2', sector: 'Real Estate', roi: '16.5%', min: '₹2 Cr' },
+    { name: 'Fabrik EV Plant', sector: 'Automotive', roi: '19%', min: '₹5 Cr', raised: 72, closing: 'Jul 20' },
+    { name: 'MediCore R&D Center', sector: 'Healthcare', roi: '24%', min: '₹3 Cr', raised: 45, closing: 'Aug 05' },
+    { name: 'Hillcrest Villas Phase 2', sector: 'Real Estate', roi: '16.5%', min: '₹2 Cr', raised: 88, closing: 'Jul 12' },
+  ],
+  statements: [
+    { period: 'Q2 FY26', type: 'Quarterly Statement', size: '412 KB', date: '2026-07-01' },
+    { period: 'Jun 2026', type: 'Monthly Summary', size: '188 KB', date: '2026-07-01' },
+    { period: 'FY25–26', type: 'Annual Tax Statement', size: '1.2 MB', date: '2026-04-15' },
+    { period: 'Q1 FY26', type: 'Quarterly Statement', size: '398 KB', date: '2026-04-01' },
+  ],
+  documents: [
+    { name: 'Investment Agreement — Prime Tower', type: 'Signed', date: '2024-03-11' },
+    { name: 'KYC & FEMA Declaration', type: 'Verified', date: '2024-03-08' },
+    { name: 'Shareholder Certificate — UrbanNest', type: 'Signed', date: '2025-01-22' },
+  ],
+  activity: [
+    { icon: 'Coins', tone: 'green', text: 'Profit of ₹0.95 Cr credited — Prime Commercial Tower', when: '2 days ago' },
+    { icon: 'FileCheck', tone: 'blue', text: 'Q2 FY26 statement is ready to download', when: '1 day ago' },
+    { icon: 'Sparkles', tone: 'gold', text: 'New opportunity matched: Fabrik EV Plant (19% ROI)', when: '3 days ago' },
+    { icon: 'CheckCircle2', tone: 'green', text: 'Withdrawal request approved — Green Valley', when: '2 weeks ago' },
   ],
 }
 
@@ -351,9 +387,21 @@ export const portalInvestor = {
 export const portalSeeker = {
   company: 'GreenTech Solutions',
   stage: 'Due Diligence',
+  industry: 'Renewable Energy',
+  location: 'Bengaluru, India',
+  valuation: '₹40 Cr',
+  equityOffered: '30%',
+  consultant: 'Rahul Mehta',
   required: '₹12 Cr',
   raised: '₹4.5 Cr',
   proposalStatus: 'Shared with 3 investors',
+  // Planned use of the raised funds — for the donut chart.
+  useOfFunds: [
+    { name: 'Manufacturing Setup', value: 40, color: '#f59e0b' },
+    { name: 'R&D', value: 25, color: '#3b82f6' },
+    { name: 'Working Capital', value: 20, color: '#2ec4b6' },
+    { name: 'Marketing & Sales', value: 15, color: '#8b5cf6' },
+  ],
   checklist: [
     { item: 'Business Plan', done: true },
     { item: 'Financial Statements', done: true },
@@ -371,6 +419,19 @@ export const portalSeeker = {
     { step: 'Due Diligence', date: '2026-06-25', done: true },
     { step: 'Investor Commitment', date: 'In progress', done: false },
     { step: 'Deal Closure', date: 'Pending', done: false },
+  ],
+  // Investors the proposal has been shared with, and where they stand.
+  investorInterest: [
+    { name: 'Dubai Capital Group', country: 'UAE', ticket: '₹4.5 Cr', status: 'Committed' },
+    { name: 'Sequoia Bridge Fund', country: 'Singapore', ticket: '₹3.0 Cr', status: 'In Discussion' },
+    { name: 'Amit Verma (Angel)', country: 'India', ticket: '₹1.5 Cr', status: 'Reviewing' },
+    { name: 'NextGen Ventures', country: 'India', ticket: '₹2.0 Cr', status: 'Proposal Sent' },
+  ],
+  // Conversation with the assigned consultant.
+  messages: [
+    { from: 'Rahul Mehta', role: 'Consultant', text: 'Your due diligence is progressing well. Please upload the Director KYC and FEMA declaration to move to investor commitment.', when: '2 days ago', me: false },
+    { from: 'You', role: 'GreenTech', text: 'Thanks Rahul — KYC is being notarised, will upload by tomorrow.', when: '1 day ago', me: true },
+    { from: 'Rahul Mehta', role: 'Consultant', text: 'Perfect. Dubai Capital Group has verbally committed ₹4.5 Cr — great momentum!', when: '20 hours ago', me: false },
   ],
 }
 

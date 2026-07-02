@@ -14,7 +14,7 @@ import {
   PiggyBank, Phone, Plus, Receipt, Rocket, Route, Scale, ScrollText, Search, Send, Settings,
   ShieldAlert, ShieldCheck, ShoppingCart, Smile, Sparkles, StickyNote, Table2, Tag, Target,
   ThumbsUp, Trash2, TrendingUp, Upload, UploadCloud, User, UserCircle, UserCog, UserPlus, UserRound,
-  Users, Video, Wallet, Circle,
+  Users, Video, Wallet, Circle, ArrowDownRight, ArrowUpRight, FileCheck, MessageSquare,
 } from 'lucide-react'
 
 export const iconMap = {
@@ -30,5 +30,5 @@ export const iconMap = {
   PiggyBank, Phone, Plus, Receipt, Rocket, Route, Scale, ScrollText, Search, Send, Settings,
   ShieldAlert, ShieldCheck, ShoppingCart, Smile, Sparkles, StickyNote, Table2, Tag, Target,
   ThumbsUp, Trash2, TrendingUp, Upload, UploadCloud, User, UserCircle, UserCog, UserPlus, UserRound,
-  Users, Video, Wallet, Circle,
+  Users, Video, Wallet, Circle, ArrowDownRight, ArrowUpRight, FileCheck, MessageSquare,
 }
