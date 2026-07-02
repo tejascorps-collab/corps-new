@@ -169,25 +169,6 @@ export default function Login() {
               )}
             </button>
           </form>
-
-          {/* Demo hint (prototype only) */}
-          <div className="mt-6 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-xs text-slate-400">
-            <div className="mb-1.5 font-semibold text-slate-300">Demo accounts</div>
-            <ul className="space-y-1">
-              <li>
-                <span className="text-gold-300">superadmin@thecorps.in</span> · <code className="text-slate-300">super@123</code>{' '}
-                <span className="text-slate-500">(Super Admin)</span>
-              </li>
-              <li>
-                <span className="text-gold-300">admin1@thecorps.in</span> · <code className="text-slate-300">admin@123</code>{' '}
-                <span className="text-slate-500">(Admin)</span>
-              </li>
-              <li>
-                <span className="text-gold-300">admin2@thecorps.in</span> · <code className="text-slate-300">admin@123</code>{' '}
-                <span className="text-slate-500">(Admin)</span>
-              </li>
-            </ul>
-          </div>
         </div>
       </div>
     </div>
