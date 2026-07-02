@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Corps — Launching Soon</title>
+  <meta name="description" content="The Corps is under maintenance and getting an update. Our new site launches soon." />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#0a0e17" />
+  <style>
+    :root{
+      --ink-950:#0a0e17; --ink-900:#0d1220; --ink-850:#111827;
+      --gold-100:#f3e7bf; --gold-300:#e0c06b; --gold-400:#d4af37; --gold-600:#a67c26;
+      --slate-300:#cbd5e1; --slate-400:#94a3b8; --slate-500:#64748b;
+      --teal:#2ec4b6;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      color:var(--slate-300);
+      background:var(--ink-950);
+      background-image:
+        radial-gradient(1100px 600px at 80% -10%, rgba(212,175,55,.10), transparent 60%),
+        radial-gradient(900px 500px at -10% 15%, rgba(46,196,182,.06), transparent 55%);
+      min-height:100%;
+      display:flex;flex-direction:column;
+      -webkit-font-smoothing:antialiased;
+      overflow-x:hidden;
+    }
+    .serif{font-family:Georgia,"Times New Roman",serif}
+    /* Skyline silhouette at the bottom */
+    .skyline{position:fixed;bottom:0;left:0;right:0;width:100%;height:160px;opacity:.22;pointer-events:none;z-index:0}
+    .wrap{
+      position:relative;z-index:1;
+      flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      text-align:center;padding:48px 24px;
+    }
+    /* Brand */
+    .brand{display:flex;align-items:center;gap:14px;margin-bottom:40px}
+    .brand svg{height:52px;width:52px}
+    .brand-name{font-size:22px;font-weight:700;letter-spacing:.22em;color:#fff}
+    .brand-sub{font-size:11px;letter-spacing:.28em;color:var(--gold-400);text-transform:uppercase;margin-top:2px}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      border:1px solid rgba(212,175,55,.25);background:rgba(212,175,55,.08);
+      color:var(--gold-300);border-radius:999px;padding:7px 16px;
+      font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;
+      margin-bottom:26px;
+    }
+    .dot{height:7px;width:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 0 rgba(46,196,182,.6);animation:pulse 2s infinite}
+    @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(46,196,182,.5)}70%{box-shadow:0 0 0 10px rgba(46,196,182,0)}100%{box-shadow:0 0 0 0 rgba(46,196,182,0)}}
+    h1{
+      font-size:clamp(34px,7vw,62px);line-height:1.05;font-weight:700;color:#fff;
+      letter-spacing:-.02em;max-width:16ch;margin:0 auto;
+    }
+    h1 .grad{
+      background:linear-gradient(120deg,var(--gold-100),var(--gold-400) 45%,var(--gold-600));
+      -webkit-background-clip:text;background-clip:text;color:transparent;
+    }
+    .lede{margin:22px auto 0;max-width:56ch;font-size:clamp(15px,2.3vw,18px);line-height:1.6;color:var(--slate-400)}
+    /* Countdown */
+    .count{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:44px}
+    .unit{
+      min-width:96px;padding:20px 14px;border-radius:18px;
+      border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015));
+      box-shadow:0 10px 30px -12px rgba(0,0,0,.6);
+    }
+    .unit .num{font-size:clamp(30px,6vw,46px);font-weight:700;color:#fff;font-variant-numeric:tabular-nums;line-height:1}
+    .unit .lbl{margin-top:10px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--slate-500)}
+    .live{display:none;margin-top:44px;font-size:clamp(20px,4vw,30px);font-weight:700;color:var(--gold-300)}
+    /* Contact */
+    .contact{margin-top:44px;font-size:14px;color:var(--slate-400)}
+    .contact a{color:var(--gold-300);text-decoration:none;border-bottom:1px solid rgba(212,175,55,.3)}
+    .contact a:hover{color:var(--gold-100)}
+    footer{position:relative;z-index:1;text-align:center;padding:22px;font-size:12px;color:var(--slate-500)}
+    @media (max-width:420px){
+      .unit{min-width:70px;padding:16px 10px}
+      .brand{margin-bottom:28px}
+    }
+  </style>
+</head>
+<body>
+  <!-- Skyline silhouette -->
+  <svg class="skyline" height="160" preserveAspectRatio="none" viewBox="0 0 800 160" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <g fill="#d4af37" id="bars"></g>
+  </svg>
+
+  <main class="wrap">
+    <div class="brand">
+      <!-- Shield-star mark -->
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="g" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#e0c06b"/><stop offset="0.5" stop-color="#d4af37"/><stop offset="1" stop-color="#a67c26"/>
+          </linearGradient>
+        </defs>
+        <circle cx="24" cy="24" r="22" stroke="url(#g)" stroke-width="2.5"/>
+        <path d="M24 9 L33 15 V27 C33 33 24 39 24 39 C24 39 15 33 15 27 V15 Z" fill="url(#g)" opacity="0.15"/>
+        <path d="M24 9 L33 15 V27 C33 33 24 39 24 39 C24 39 15 33 15 27 V15 Z" stroke="url(#g)" stroke-width="2" stroke-linejoin="round"/>
+        <text x="24" y="30" font-family="Georgia, serif" font-size="16" font-weight="700" fill="url(#g)" text-anchor="middle">C</text>
+      </svg>
+      <div style="text-align:left">
+        <div class="brand-name serif">THE CORPS</div>
+        <div class="brand-sub">Investments &amp; Ventures</div>
+      </div>
+    </div>
+
+    <div class="pill"><span class="dot"></span> Under Maintenance</div>
+
+    <h1 class="serif">We're upgrading. <span class="grad">Launching&nbsp;soon.</span></h1>
+    <p class="lede">
+      Our site is currently undergoing scheduled maintenance and updates to bring you a
+      better experience. We'll be back online shortly — thank you for your patience.
+    </p>
+
+    <div class="count" id="countdown" role="timer" aria-live="polite">
+      <div class="unit"><div class="num" id="d">00</div><div class="lbl">Days</div></div>
+      <div class="unit"><div class="num" id="h">00</div><div class="lbl">Hours</div></div>
+      <div class="unit"><div class="num" id="m">00</div><div class="lbl">Minutes</div></div>
+      <div class="unit"><div class="num" id="s">00</div><div class="lbl">Seconds</div></div>
+    </div>
+    <div class="live" id="live">🎉 We're live — refresh the page!</div>
+
+    <div class="contact">
+      Need to reach us? <a href="mailto:hello@thecorps.in">hello@thecorps.in</a>
+    </div>
+  </main>
+
+  <footer>© 2026 The Corps. All rights reserved.</footer>
+
+  <script>
+    // Launch target — fixed UTC instant (2 days from deployment).
+    var LAUNCH = new Date("2026-07-04T17:00:00Z").getTime();
+
+    var elD = document.getElementById('d'), elH = document.getElementById('h'),
+        elM = document.getElementById('m'), elS = document.getElementById('s'),
+        cd  = document.getElementById('countdown'), live = document.getElementById('live');
+
+    function pad(n){ return (n < 10 ? '0' : '') + n; }
+
+    function tick(){
+      var diff = LAUNCH - Date.now();
+      if (diff <= 0){
+        cd.style.display = 'none';
+        live.style.display = 'block';
+        clearInterval(timer);
+        return;
+      }
+      var s = Math.floor(diff/1000);
+      elD.textContent = pad(Math.floor(s/86400));
+      elH.textContent = pad(Math.floor((s%86400)/3600));
+      elM.textContent = pad(Math.floor((s%3600)/60));
+      elS.textContent = pad(s%60);
+    }
+
+    var timer = setInterval(tick, 1000);
+    tick();
+
+    // Build the skyline silhouette.
+    (function(){
+      var g = document.getElementById('bars');
+      var xs = [20,70,110,160,210,250,300,360,410,460,520,580,630,690,740];
+      var svgns = "http://www.w3.org/2000/svg", out = "";
+      for (var i=0;i<xs.length;i++){
+        var hgt = 45 + (i*37)%95, w = (i%3===0)?34:24, y = 160 - hgt;
+        out += '<rect x="'+xs[i]+'" y="'+y+'" width="'+w+'" height="'+hgt+'"/>';
+      }
+      g.innerHTML = out;
+    })();
+  </script>
+</body>
+</html>
