@@ -1,29 +1,30 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
 import { seedNotifications, demoPushes } from '../data/mockData'
+import { authenticate, findUserById } from '../data/users'
 
 const AppContext = createContext(null)
 export const useApp = () => useContext(AppContext)
 
-// Demo credentials (prototype — no real backend).
-const DEMO_CREDENTIALS = { username: 'admin@thecorps.in', password: 'admin123' }
-
 export function AppProvider({ children }) {
   // ---------- Auth ----------
-  const [authed, setAuthed] = useState(() => localStorage.getItem('fdi_authed') === '1')
+  // Rehydrate the signed-in user from the persisted id (if still valid).
+  const [currentUser, setCurrentUser] = useState(() => findUserById(localStorage.getItem('fdi_user')))
+  const authed = !!currentUser
+
   useEffect(() => {
-    if (authed) localStorage.setItem('fdi_authed', '1')
-    else localStorage.removeItem('fdi_authed')
-  }, [authed])
+    if (currentUser) localStorage.setItem('fdi_user', currentUser.id)
+    else localStorage.removeItem('fdi_user')
+  }, [currentUser])
 
   const login = useCallback(({ username, password }) => {
-    const ok =
-      username.trim().toLowerCase() === DEMO_CREDENTIALS.username &&
-      password === DEMO_CREDENTIALS.password
-    if (ok) setAuthed(true)
-    return ok
+    const user = authenticate(username, password)
+    if (user) setCurrentUser(user)
+    return !!user
   }, [])
 
-  const logout = useCallback(() => setAuthed(false), [])
+  const logout = useCallback(() => setCurrentUser(null), [])
+
+  const isSuperAdmin = currentUser?.role === 'super_admin'
 
   // ---------- Role (admin | investor | seeker) ----------
   const [role, setRole] = useState(() => localStorage.getItem('fdi_role') || 'admin')
@@ -125,6 +126,8 @@ export function AppProvider({ children }) {
   const value = {
     // auth
     authed,
+    currentUser,
+    isSuperAdmin,
     login,
     logout,
     role,

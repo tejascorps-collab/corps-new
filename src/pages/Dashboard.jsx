@@ -8,6 +8,7 @@ import {
   recentInvestments, propertiesOverview,
 } from '../data/mockData'
 import { Crown, ChevronRight, ArrowUpRight } from 'lucide-react'
+import { useApp } from '../context/AppContext'
 
 const ringData = [
   { name: 'Completed', value: taskSummary.completed, color: '#22c55e' },
@@ -16,6 +17,8 @@ const ringData = [
 ]
 
 export default function Dashboard() {
+  const { currentUser } = useApp()
+  const firstName = (currentUser?.name || 'there').split(' ')[0]
   return (
     <div className="space-y-6">
       {/* Hero + Global presence */}
@@ -35,7 +38,7 @@ export default function Dashboard() {
           <div className="absolute inset-0 bg-gradient-to-r from-ink-950 via-ink-950/70 to-transparent" />
           <div className="relative p-7">
             <div className="flex items-center gap-2">
-              <h2 className="font-display text-3xl font-bold text-white">Welcome back, Tejas Taran</h2>
+              <h2 className="font-display text-3xl font-bold text-white">Welcome back, {firstName}</h2>
               <Crown className="text-gold-400" size={26} />
             </div>
             <p className="mt-1 text-slate-300">Here's what's happening with your investments today.</p>

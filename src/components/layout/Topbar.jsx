@@ -2,11 +2,11 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Menu, Search, Globe, MessageSquare, ChevronDown, Check } from 'lucide-react'
 import { company, globalSearch } from '../../data/mockData'
+import { roleLabel } from '../../data/users'
 import { Icon } from '../ui/Primitives'
 import NotificationBell from '../notifications/NotificationBell'
 import { useApp } from '../../context/AppContext'
 
-const roleLabels = { admin: 'Super Admin', investor: 'Investor', seeker: 'Investment Seeker' }
 const roleOptions = [
   { key: 'admin', label: 'Admin Console', icon: 'LayoutDashboard' },
   { key: 'investor', label: 'Investor Portal', icon: 'UserCircle' },
@@ -20,7 +20,8 @@ const typeTint = {
 
 export default function Topbar({ onMenu }) {
   const nav = useNavigate()
-  const { role, setRole, canInstall, installApp, logout } = useApp()
+  const { role, setRole, canInstall, installApp, logout, currentUser } = useApp()
+  const user = currentUser || company.user
   const [q, setQ] = useState('')
   const [open, setOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -104,17 +105,33 @@ export default function Topbar({ onMenu }) {
             className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.03] py-1.5 pl-1.5 pr-3 hover:bg-white/[0.06]"
           >
             <span className="grid h-9 w-9 place-items-center rounded-lg bg-gold-gradient text-sm font-bold text-ink-950">
-              {company.user.avatar}
+              {user.avatar}
             </span>
             <div className="hidden text-left leading-tight sm:block">
-              <div className="text-sm font-semibold text-white">{company.user.name}</div>
-              <div className="text-[11px] text-gold-400">{roleLabels[role]}</div>
+              <div className="text-sm font-semibold text-white">{user.name}</div>
+              <div className="text-[11px] text-gold-400">{roleLabel(user.role)}</div>
             </div>
             <ChevronDown size={15} className="text-slate-400" />
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 top-full z-40 mt-2 w-60 overflow-hidden rounded-2xl border border-white/10 bg-ink-850 shadow-card">
+            <div className="absolute right-0 top-full z-40 mt-2 w-64 overflow-hidden rounded-2xl border border-white/10 bg-ink-850 shadow-card">
+              {/* Signed-in account */}
+              <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
+                <span className="grid h-9 w-9 place-items-center rounded-lg bg-gold-gradient text-sm font-bold text-ink-950">
+                  {user.avatar}
+                </span>
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-semibold text-white">{user.name}</div>
+                  <div className="truncate text-[11px] text-slate-400">{user.email}</div>
+                </div>
+              </div>
+              <div className="border-b border-white/10 px-4 py-2">
+                <span className={`chip ring-1 ${currentUser?.role === 'super_admin' ? 'bg-gold-400/10 text-gold-300 ring-gold-400/20' : 'bg-brand-blue/10 text-brand-blue ring-brand-blue/20'}`}>
+                  <Icon name={currentUser?.role === 'super_admin' ? 'ShieldCheck' : 'UserCircle'} size={12} />
+                  {roleLabel(user.role)}
+                </span>
+              </div>
               <div className="border-b border-white/10 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                 Switch View
               </div>
