@@ -1,6 +1,16 @@
 import { lazy } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import Layout from './components/layout/Layout'
+import Login from './pages/Login'
+import { useApp } from './context/AppContext'
+
+// Gate that redirects unauthenticated users to /login, preserving where they were headed.
+function RequireAuth({ children }) {
+  const { authed } = useApp()
+  const location = useLocation()
+  if (!authed) return <Navigate to="/login" replace state={{ from: location }} />
+  return children
+}
 
 // Route-level code splitting — each page is its own chunk, loaded on demand.
 const Dashboard = lazy(() => import('./pages/Dashboard'))
@@ -44,7 +54,14 @@ const SeekerPortal = lazy(() => import('./pages/portals/SeekerPortal'))
 export default function App() {
   return (
     <Routes>
-      <Route element={<Layout />}>
+      <Route path="/login" element={<Login />} />
+      <Route
+        element={
+          <RequireAuth>
+            <Layout />
+          </RequireAuth>
+        }
+      >
         <Route index element={<Dashboard />} />
 
         <Route path="investors" element={<Investors />} />

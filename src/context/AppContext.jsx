@@ -4,7 +4,27 @@ import { seedNotifications, demoPushes } from '../data/mockData'
 const AppContext = createContext(null)
 export const useApp = () => useContext(AppContext)
 
+// Demo credentials (prototype — no real backend).
+const DEMO_CREDENTIALS = { username: 'admin@thecorps.in', password: 'admin123' }
+
 export function AppProvider({ children }) {
+  // ---------- Auth ----------
+  const [authed, setAuthed] = useState(() => localStorage.getItem('fdi_authed') === '1')
+  useEffect(() => {
+    if (authed) localStorage.setItem('fdi_authed', '1')
+    else localStorage.removeItem('fdi_authed')
+  }, [authed])
+
+  const login = useCallback(({ username, password }) => {
+    const ok =
+      username.trim().toLowerCase() === DEMO_CREDENTIALS.username &&
+      password === DEMO_CREDENTIALS.password
+    if (ok) setAuthed(true)
+    return ok
+  }, [])
+
+  const logout = useCallback(() => setAuthed(false), [])
+
   // ---------- Role (admin | investor | seeker) ----------
   const [role, setRole] = useState(() => localStorage.getItem('fdi_role') || 'admin')
   useEffect(() => localStorage.setItem('fdi_role', role), [role])
@@ -103,6 +123,10 @@ export function AppProvider({ children }) {
   }, [pushNotification])
 
   const value = {
+    // auth
+    authed,
+    login,
+    logout,
     role,
     setRole,
     notifications,

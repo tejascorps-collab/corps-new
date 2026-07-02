@@ -20,7 +20,7 @@ const typeTint = {
 
 export default function Topbar({ onMenu }) {
   const nav = useNavigate()
-  const { role, setRole, canInstall, installApp } = useApp()
+  const { role, setRole, canInstall, installApp, logout } = useApp()
   const [q, setQ] = useState('')
   const [open, setOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -139,7 +139,12 @@ export default function Topbar({ onMenu }) {
                 </button>
               )}
               <div className="border-t border-white/10 p-1.5">
-                <button className="btn-ghost btn-sm w-full">Sign out</button>
+                <button
+                  onClick={() => { setMenuOpen(false); logout(); nav('/login') }}
+                  className="btn-ghost btn-sm w-full"
+                >
+                  Sign out
+                </button>
               </div>
             </div>
           )}
