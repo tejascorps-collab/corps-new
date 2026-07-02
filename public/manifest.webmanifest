@@ -1,0 +1,23 @@
+{
+  "name": "FDI Prime Investments",
+  "short_name": "FDI Prime",
+  "description": "Investment & Property Management Platform — FDI consultancy, property investment, investor & seeker portals.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#070a11",
+  "theme_color": "#0a0e17",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["business", "finance", "productivity"],
+  "icons": [
+    { "src": "/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icon-maskable.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Dashboard", "short_name": "Dashboard", "url": "/", "description": "Main admin dashboard" },
+    { "name": "Notifications", "short_name": "Alerts", "url": "/notifications", "description": "Notification center" },
+    { "name": "Support", "short_name": "Support", "url": "/support", "description": "Live chat & tickets" }
+  ]
+}

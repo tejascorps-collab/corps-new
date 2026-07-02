@@ -1,0 +1,20 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="140" y1="140" x2="372" y2="372" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#e0c06b"/>
+      <stop offset="0.5" stop-color="#d4af37"/>
+      <stop offset="1" stop-color="#a67c26"/>
+    </linearGradient>
+    <radialGradient id="bg" cx="0.5" cy="0.35" r="0.75">
+      <stop stop-color="#131a28"/>
+      <stop offset="1" stop-color="#070a11"/>
+    </radialGradient>
+  </defs>
+  <!-- Full-bleed background for maskable safe zone -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <!-- Emblem centered within the ~80% safe zone -->
+  <circle cx="256" cy="256" r="118" stroke="url(#g)" stroke-width="10"/>
+  <path d="M256 176 L312 213 V286 C312 322 256 356 256 356 C256 356 200 322 200 286 V213 Z"
+        fill="url(#g)" fill-opacity="0.15" stroke="url(#g)" stroke-width="8" stroke-linejoin="round"/>
+  <text x="256" y="292" font-family="Georgia, serif" font-size="92" font-weight="700" fill="url(#g)" text-anchor="middle">F</text>
+</svg>
