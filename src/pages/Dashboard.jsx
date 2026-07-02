@@ -8,6 +8,7 @@ import {
   recentInvestments, propertiesOverview,
 } from '../data/mockData'
 import { Crown, ChevronRight, ArrowUpRight } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 
 const ringData = [
@@ -17,7 +18,8 @@ const ringData = [
 ]
 
 export default function Dashboard() {
-  const { currentUser } = useApp()
+  const { currentUser, pushNotification } = useApp()
+  const nav = useNavigate()
   const firstName = (currentUser?.name || 'there').split(' ')[0]
   return (
     <div className="space-y-6">
@@ -43,8 +45,8 @@ export default function Dashboard() {
             </div>
             <p className="mt-1 text-slate-300">Here's what's happening with your investments today.</p>
             <div className="mt-16 flex flex-wrap gap-3">
-              <button className="btn-gold">View Portfolio</button>
-              <button className="btn-ghost">Add Investment</button>
+              <button className="btn-gold" onClick={() => nav('/properties')}>View Portfolio</button>
+              <button className="btn-ghost" onClick={() => nav('/investors')}>Add Investment</button>
             </div>
           </div>
         </div>
@@ -62,7 +64,7 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-          <button className="btn-gold btn-sm w-full">View Global Network <ChevronRight size={15} /></button>
+          <button className="btn-gold btn-sm w-full" onClick={() => nav('/international')}>View Global Network <ChevronRight size={15} /></button>
         </Card>
       </div>
 
@@ -77,7 +79,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <Card className="xl:col-span-1 xl:row-span-1">
           <CardHeader title="AUM & Profit Overview" subtitle="This Year" icon="TrendingUp"
-            action={<button className="btn-ghost btn-sm">This Year</button>} />
+            action={<button className="btn-ghost btn-sm" onClick={() => pushNotification({ type: 'system', title: 'View updated', text: 'Showing AUM & Profit for This Year.', tone: 'gold', icon: 'TrendingUp' })}>This Year</button>} />
           <div className="card-pad pt-3">
             <div className="mb-2 flex gap-4 text-xs">
               <Legend color="#d4af37" label="AUM (₹ Cr)" />
@@ -89,7 +91,7 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader title="Investment Distribution" subtitle="By Sector" icon="PieChart"
-            action={<button className="btn-ghost btn-sm">By Sector</button>} />
+            action={<button className="btn-ghost btn-sm" onClick={() => pushNotification({ type: 'system', title: 'View updated', text: 'Grouping investment distribution by sector.', tone: 'gold', icon: 'PieChart' })}>By Sector</button>} />
           <div className="card-pad grid grid-cols-2 items-center gap-2 pt-3">
             <DonutChart data={investmentDistribution} centerBottom="₹265.40 Cr" />
             <div className="space-y-2.5">
@@ -117,7 +119,7 @@ export default function Dashboard() {
       {/* Enquiries + Activities + Tasks */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-4">
         <Card className="xl:col-span-1">
-          <CardHeader title="Recent Enquiries" action={<LinkAll />} />
+          <CardHeader title="Recent Enquiries" action={<LinkAll to="/investors" />} />
           <div className="card-pad space-y-1 pt-3">
             {recentEnquiries.map((e) => (
               <div key={e.name} className="flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-white/[0.03]">
@@ -133,7 +135,7 @@ export default function Dashboard() {
         </Card>
 
         <Card className="xl:col-span-2">
-          <CardHeader title="Upcoming Activities" action={<LinkAll label="View Calendar" />} />
+          <CardHeader title="Upcoming Activities" action={<LinkAll label="View Calendar" to="/tasks" />} />
           <div className="card-pad space-y-2 pt-3">
             {upcomingActivities.map((a, i) => (
               <div key={i} className="flex items-center gap-3 rounded-xl bg-white/[0.02] px-3 py-2.5 ring-1 ring-white/5">
@@ -175,7 +177,7 @@ export default function Dashboard() {
       {/* Recent investments + properties overview */}
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <Card>
-          <CardHeader title="Recent Investments" action={<LinkAll />} />
+          <CardHeader title="Recent Investments" action={<LinkAll to="/investors" />} />
           <div className="overflow-x-auto px-2 pb-2 pt-2">
             <table className="w-full min-w-[520px] text-left text-sm">
               <thead>
@@ -205,7 +207,7 @@ export default function Dashboard() {
         </Card>
 
         <Card>
-          <CardHeader title="Properties Overview" action={<LinkAll />} />
+          <CardHeader title="Properties Overview" action={<LinkAll to="/properties" />} />
           <div className="card-pad grid grid-cols-1 gap-3 pt-3 sm:grid-cols-2">
             {propertiesOverview.map((p) => (
               <div key={p.name} className="overflow-hidden rounded-xl bg-white/[0.02] ring-1 ring-white/5">
@@ -247,9 +249,10 @@ export default function Dashboard() {
   )
 }
 
-function LinkAll({ label = 'View All' }) {
+function LinkAll({ label = 'View All', to = '/' }) {
+  const nav = useNavigate()
   return (
-    <button className="flex items-center gap-1 text-xs font-medium text-gold-400 hover:text-gold-300">
+    <button onClick={() => nav(to)} className="flex items-center gap-1 text-xs font-medium text-gold-400 hover:text-gold-300">
       {label} <ChevronRight size={14} />
     </button>
   )

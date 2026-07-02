@@ -1,18 +1,46 @@
+import { useState } from 'react'
 import { PageHeader, Card, CardHeader, Badge, StatCard, Icon } from '../../components/ui/Primitives'
+import { Modal, FormGrid, TextField, SelectField } from '../../components/ui/Modal'
+import { useApp } from '../../context/AppContext'
 import { tasks, upcomingActivities } from '../../data/mockData'
 
 const prioTone = { High: 'red', Medium: 'orange', Low: 'slate' }
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-// July 2026 starts on a Wednesday
-const monthStartOffset = 2
 const eventDays = { 2: 1, 3: 1, 5: 2, 8: 1, 10: 1 }
+// Mon-first weekday offset (getDay: 0=Sun) → columns to skip before day 1
+const leadingBlanks = (year, month) => (new Date(year, month, 1).getDay() + 6) % 7
+const daysInMonth = (year, month) => new Date(year, month + 1, 0).getDate()
+
+const emptyTask = { title: '', due: '', priority: 'Medium', assignee: '' }
 
 export default function TasksCalendar() {
+  const { pushNotification } = useApp()
+  const base = new Date(2026, 6, 1) // July 2026 (real "today" in this prototype = the 2nd)
+  const [offset, setOffset] = useState(0)
+  const [taskModal, setTaskModal] = useState(false)
+  const [taskForm, setTaskForm] = useState(emptyTask)
+  const setTask = (k) => (v) => setTaskForm((f) => ({ ...f, [k]: v }))
+
+  const openTask = () => { setTaskForm(emptyTask); setTaskModal(true) }
+  const createTask = () => {
+    if (!taskForm.title.trim()) return
+    setTaskModal(false)
+    setTaskForm(emptyTask)
+    pushNotification({ type: 'system', title: 'Task created', text: `${taskForm.title} scheduled.`, tone: 'green', icon: 'CheckCircle2' })
+  }
+  const view = new Date(base.getFullYear(), base.getMonth() + offset, 1)
+  const year = view.getFullYear()
+  const month = view.getMonth()
+  const monthLabel = view.toLocaleString('en-US', { month: 'long', year: 'numeric' })
+  const monthStartOffset = leadingBlanks(year, month)
+  const totalDays = daysInMonth(year, month)
+  const showEvents = offset === 0 // sample events only meaningful for the base month
+
   return (
     <div>
       <PageHeader title="Tasks & Calendar" subtitle="Team tasks, follow-ups, meetings & scheduling" icon="CalendarDays">
-        <button className="btn-ghost btn-sm">Today</button>
-        <button className="btn-gold btn-sm">+ New Task</button>
+        <button className="btn-ghost btn-sm" onClick={() => setOffset(0)}>Today</button>
+        <button className="btn-gold btn-sm" onClick={openTask}>+ New Task</button>
       </PageHeader>
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -25,10 +53,10 @@ export default function TasksCalendar() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
         {/* Calendar */}
         <Card>
-          <CardHeader title="July 2026" icon="CalendarDays"
+          <CardHeader title={monthLabel} icon="CalendarDays"
             action={<div className="flex gap-1">
-              <button className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5"><Icon name="ChevronLeft" size={16} /></button>
-              <button className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5"><Icon name="ChevronRight" size={16} /></button>
+              <button onClick={() => setOffset((o) => o - 1)} className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5"><Icon name="ChevronLeft" size={16} /></button>
+              <button onClick={() => setOffset((o) => o + 1)} className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5"><Icon name="ChevronRight" size={16} /></button>
             </div>} />
           <div className="card-pad pt-3">
             <div className="mb-2 grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase text-slate-500">
@@ -36,10 +64,10 @@ export default function TasksCalendar() {
             </div>
             <div className="grid grid-cols-7 gap-1">
               {Array.from({ length: monthStartOffset }).map((_, i) => <div key={`e${i}`} />)}
-              {Array.from({ length: 31 }).map((_, i) => {
+              {Array.from({ length: totalDays }).map((_, i) => {
                 const day = i + 1
-                const isToday = day === 2
-                const ev = eventDays[day]
+                const isToday = showEvents && day === 2
+                const ev = showEvents ? eventDays[day] : undefined
                 return (
                   <div key={day} className={`aspect-square rounded-lg p-1.5 text-sm ring-1 transition ${
                     isToday ? 'bg-gold-400/15 text-gold-200 ring-gold-400/40' : 'text-slate-300 ring-white/5 hover:bg-white/[0.03]'}`}>
@@ -98,6 +126,18 @@ export default function TasksCalendar() {
           </table>
         </div>
       </Card>
+
+      <Modal open={taskModal} onClose={() => setTaskModal(false)} title="New Task" subtitle="Schedule a follow-up, meeting or to-do" icon="CalendarDays"
+        footer={<><button className="btn-ghost btn-sm" onClick={() => setTaskModal(false)}>Cancel</button><button className="btn-gold btn-sm" onClick={createTask}>Create Task</button></>}>
+        <form onSubmit={(e) => { e.preventDefault(); createTask() }}>
+          <FormGrid>
+            <TextField label="Task Title" value={taskForm.title} onChange={setTask('title')} placeholder="e.g. Follow up with Dubai Capital" required full />
+            <TextField label="Due Date" value={taskForm.due} onChange={setTask('due')} placeholder="e.g. Jul 10, 2026" />
+            <SelectField label="Priority" value={taskForm.priority} onChange={setTask('priority')} options={['Low', 'Medium', 'High']} />
+            <TextField label="Assignee" value={taskForm.assignee} onChange={setTask('assignee')} placeholder="e.g. Priya Sharma" full />
+          </FormGrid>
+        </form>
+      </Modal>
     </div>
   )
 }

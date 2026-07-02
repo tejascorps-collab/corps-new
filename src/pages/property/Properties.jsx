@@ -102,7 +102,7 @@ export default function Properties() {
   return (
     <div>
       <PageHeader title="Property Database" subtitle="Residential, commercial, industrial, agricultural & international assets" icon="Building2">
-        <button className="btn-ghost btn-sm">Map View</button>
+        <button className="btn-ghost btn-sm" onClick={() => pushNotification({ type: 'property', title: 'Map view', text: 'Map view is coming soon.', tone: 'blue', icon: 'MapPin' })}>Map View</button>
         <button className="btn-gold btn-sm" onClick={openAdd}>+ Add Property</button>
       </PageHeader>
 

@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { PageHeader, Card, CardHeader, Badge, Icon } from '../../components/ui/Primitives'
+import { Modal } from '../../components/ui/Modal'
+import { useApp } from '../../context/AppContext'
 import { FileText, Download, Check } from 'lucide-react'
 
 const sections = [
@@ -14,17 +16,37 @@ const sections = [
   { key: 'attachments', label: 'Attachments', icon: 'Paperclip' },
 ]
 
+const blockLabels = {
+  'Insert Chart': { label: 'Chart', icon: 'LineChart', desc: 'Financial projection chart' },
+  'Insert Table': { label: 'Table', icon: 'Table2', desc: 'Data table' },
+  'Insert Financials': { label: 'Financials', icon: 'Wallet', desc: 'Financial statement block' },
+  'AI Draft': { label: 'AI Draft', icon: 'Sparkles', desc: 'AI-generated section draft' },
+}
+
 export default function ProposalBuilder() {
+  const { pushNotification } = useApp()
   const [active, setActive] = useState('summary')
   const [done, setDone] = useState(['summary', 'model', 'projection'])
+  const [preview, setPreview] = useState(false)
+  const [blocks, setBlocks] = useState([])
   const toggle = (k) => setDone((d) => (d.includes(k) ? d.filter((x) => x !== k) : [...d, k]))
   const pct = Math.round((done.length / sections.length) * 100)
+
+  const insertBlock = (b) => {
+    const meta = blockLabels[b]
+    setBlocks((bl) => [...bl, { id: Date.now() + Math.random(), section: active, ...meta }])
+    pushNotification({ type: 'system', title: `${meta.label} inserted`, text: `${meta.desc} added to ${sections.find((s) => s.key === active)?.label}.`, tone: 'gold', icon: meta.icon })
+  }
+
+  const exportPdf = () => {
+    pushNotification({ type: 'system', title: 'Proposal exported', text: 'Proposal exported as PDF.', tone: 'green', icon: 'Download' })
+  }
 
   return (
     <div>
       <PageHeader title="FDI Proposal Builder" subtitle="Generate professional, investor-ready proposals with PDF export" icon="FileText">
-        <button className="btn-ghost btn-sm"><Icon name="Eye" size={14} /> Preview</button>
-        <button className="btn-gold btn-sm"><Download size={14} /> Export PDF</button>
+        <button className="btn-ghost btn-sm" onClick={() => setPreview(true)}><Icon name="Eye" size={14} /> Preview</button>
+        <button className="btn-gold btn-sm" onClick={exportPdf}><Download size={14} /> Export PDF</button>
       </PageHeader>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
@@ -81,9 +103,24 @@ export default function ProposalBuilder() {
               </div>
               <div className="flex flex-wrap gap-2">
                 {['Insert Chart', 'Insert Table', 'Insert Financials', 'AI Draft'].map((b) => (
-                  <button key={b} className="btn-ghost btn-sm">{b}</button>
+                  <button key={b} className="btn-ghost btn-sm" onClick={() => insertBlock(b)}>{b}</button>
                 ))}
               </div>
+              {blocks.length > 0 && (
+                <div className="space-y-2 pt-1">
+                  {blocks.map((bl) => (
+                    <div key={bl.id} className="flex items-center justify-between rounded-xl bg-white/[0.02] px-3 py-2.5 ring-1 ring-white/5">
+                      <span className="flex items-center gap-2.5 text-sm text-slate-200">
+                        <Icon name={bl.icon} size={16} className="text-gold-300" />
+                        <span>{bl.label} block <span className="text-slate-500">· {sections.find((s) => s.key === bl.section)?.label}</span></span>
+                      </span>
+                      <button onClick={() => setBlocks((list) => list.filter((x) => x.id !== bl.id))} className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white">
+                        <Icon name="Trash2" size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </Card>
 
@@ -117,6 +154,49 @@ export default function ProposalBuilder() {
           </Card>
         </div>
       </div>
+
+      <Modal
+        open={preview}
+        onClose={() => setPreview(false)}
+        title="Proposal Preview"
+        subtitle="GreenTech Solutions Pvt. Ltd. — FDI Investment Proposal"
+        icon="Eye"
+        size="lg"
+        footer={
+          <>
+            <button className="btn-ghost btn-sm" onClick={() => setPreview(false)}>Close</button>
+            <button className="btn-gold btn-sm" onClick={() => { setPreview(false); exportPdf() }}><Download size={14} /> Export PDF</button>
+          </>
+        }
+      >
+        <div className="space-y-2">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="text-sm font-semibold text-white">Sections ({done.length}/{sections.length} complete)</span>
+            <Badge tone={pct === 100 ? 'green' : 'gold'}>{pct}% complete</Badge>
+          </div>
+          {sections.map((s) => (
+            <div key={s.key} className="flex items-center justify-between rounded-xl bg-white/[0.02] px-3 py-2.5 ring-1 ring-white/5">
+              <span className="flex items-center gap-2.5 text-sm text-slate-200">
+                <Icon name={s.icon} size={16} className="text-gold-300" />
+                {s.label}
+              </span>
+              {done.includes(s.key)
+                ? <Badge tone="green">Complete</Badge>
+                : <Badge tone="slate">Draft</Badge>}
+            </div>
+          ))}
+          {blocks.length > 0 && (
+            <div className="pt-3">
+              <div className="mb-2 text-sm font-semibold text-white">Inserted Blocks</div>
+              <div className="flex flex-wrap gap-2">
+                {blocks.map((bl) => (
+                  <span key={bl.id} className="chip bg-gold-400/10 text-gold-200 ring-1 ring-gold-400/20">{bl.label}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </Modal>
     </div>
   )
 }

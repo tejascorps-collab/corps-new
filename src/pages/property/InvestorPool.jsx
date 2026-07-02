@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PageHeader, Toolbar, Table, Badge, StatCard, Avatar, initials } from '../../components/ui/Primitives'
+import { Modal, FormGrid, TextField } from '../../components/ui/Modal'
+import { useApp } from '../../context/AppContext'
 import { downloadCsv } from '../../lib/exportCsv'
 import { investorPool, investorIdByName, propertyIdByName } from '../../data/mockData'
 
@@ -17,17 +19,68 @@ const columns = [
 
 export default function InvestorPool() {
   const nav = useNavigate()
+  const { pushNotification } = useApp()
   const [q, setQ] = useState('')
+  const [pool, setPool] = useState(investorPool)
+  const [open, setOpen] = useState(false)
+  const [form, setForm] = useState({ investor: '', property: '', amount: '', share: '' })
+  const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v }))
   const rows = useMemo(() => {
     const term = q.trim().toLowerCase()
-    return investorPool.filter((r) => !term || [r.investor, r.property].some((v) => v.toLowerCase().includes(term)))
-  }, [q])
+    return pool.filter((r) => !term || [r.investor, r.property].some((v) => v.toLowerCase().includes(term)))
+  }, [q, pool])
+
+  const submit = (e) => {
+    e?.preventDefault?.()
+    if (!form.investor.trim() || !form.property.trim()) return
+    const ownership = form.share.trim() ? `${form.share.trim().replace(/%$/, '')}%` : '—'
+    setPool((p) => [
+      {
+        investor: form.investor.trim(),
+        property: form.property.trim(),
+        amount: form.amount.trim() || '₹0 Cr',
+        units: '—',
+        ownership,
+        roi: '—',
+        date: new Date().toISOString().slice(0, 10),
+        exit: '—',
+      },
+      ...p,
+    ])
+    setOpen(false)
+    setForm({ investor: '', property: '', amount: '', share: '' })
+    pushNotification({ type: 'system', title: 'Pool entry added', text: `${form.investor.trim()} → ${form.property.trim()}.`, tone: 'gold', icon: 'Users' })
+  }
 
   return (
     <div>
       <PageHeader title="Investor Pool" subtitle="Pooled investments per property — units, ownership % & ROI" icon="Layers">
-        <button className="btn-gold btn-sm">+ Add Pool Entry</button>
+        <button className="btn-gold btn-sm" onClick={() => setOpen(true)}>+ Add Pool Entry</button>
       </PageHeader>
+
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Add Pool Entry"
+        subtitle="Record a pooled investment"
+        icon="Users"
+        size="md"
+        footer={
+          <>
+            <button className="btn-ghost btn-sm" onClick={() => setOpen(false)}>Cancel</button>
+            <button className="btn-gold btn-sm" onClick={submit}>Add Entry</button>
+          </>
+        }
+      >
+        <form onSubmit={submit}>
+          <FormGrid>
+            <TextField label="Investor" value={form.investor} onChange={set('investor')} placeholder="e.g. Rohan Mehta" required />
+            <TextField label="Property" value={form.property} onChange={set('property')} placeholder="e.g. Prime Commercial Tower" required />
+            <TextField label="Investment Amount" value={form.amount} onChange={set('amount')} placeholder="e.g. ₹5 Cr" />
+            <TextField label="Share %" value={form.share} onChange={set('share')} placeholder="e.g. 12" />
+          </FormGrid>
+        </form>
+      </Modal>
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Pooled Capital" value="₹75.00 Cr" delta={10.0} up icon="Layers" tint="gold" />

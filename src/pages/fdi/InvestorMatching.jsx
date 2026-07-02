@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PageHeader, Card, CardHeader, Badge, StatCard, Avatar, initials } from '../../components/ui/Primitives'
+import { useApp } from '../../context/AppContext'
 import { matches, investorIdByName, seekerIdByName } from '../../data/mockData'
 import { ArrowRight } from 'lucide-react'
 
@@ -7,10 +9,26 @@ const criteria = ['Industry', 'Country', 'Investment Amount', 'Expected ROI', 'I
 
 export default function InvestorMatching() {
   const nav = useNavigate()
+  const { pushNotification } = useApp()
+  const [running, setRunning] = useState(false)
+
+  const runMatching = () => {
+    if (running) return
+    setRunning(true)
+    setTimeout(() => {
+      setRunning(false)
+      pushNotification({ type: 'system', title: 'Matching complete', text: `Matching complete — ${matches.length} matches found.`, tone: 'purple', icon: 'Sparkles' })
+    }, 900)
+  }
+
+  const introduce = (m) => {
+    pushNotification({ type: 'system', title: 'Introduction sent', text: `Intro sent between ${m.investor} and ${m.seeker}.`, tone: 'gold', icon: 'Handshake' })
+  }
+
   return (
     <div>
       <PageHeader title="Investment Matching Engine" subtitle="Auto-match Investor ↔ Startup ↔ Company on industry, amount, ROI & risk" icon="GitCompareArrows">
-        <button className="btn-gold btn-sm">Run Matching</button>
+        <button className="btn-gold btn-sm" onClick={runMatching} disabled={running}>{running ? 'Running…' : 'Run Matching'}</button>
       </PageHeader>
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -60,7 +78,7 @@ export default function InvestorMatching() {
                   <div className="text-xs text-slate-500">Match Score</div>
                   <div className={`text-lg font-bold ${m.score >= 85 ? 'text-brand-green' : 'text-gold-300'}`}>{m.score}%</div>
                 </div>
-                <button className="btn-gold btn-sm">Introduce</button>
+                <button className="btn-gold btn-sm" onClick={() => introduce(m)}>Introduce</button>
               </div>
             </div>
             <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">

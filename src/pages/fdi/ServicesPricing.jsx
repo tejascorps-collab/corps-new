@@ -1,13 +1,38 @@
+import { useState } from 'react'
 import { PageHeader, Card, Badge, StatCard, Icon } from '../../components/ui/Primitives'
+import { Modal, FormGrid, TextField, SelectField } from '../../components/ui/Modal'
+import { useApp } from '../../context/AppContext'
 import { servicePricing } from '../../data/mockData'
 
 const featured = ['Investment Due Diligence', 'Investor Matching Service', 'End-to-End FDI Consultancy']
+const categoryOpts = ['Advisory', 'Compliance', 'Due Diligence', 'Matching', 'Documentation', 'End-to-End']
+const emptyService = { service: '', price: '', category: 'Advisory' }
 
 export default function ServicesPricing() {
+  const { pushNotification } = useApp()
+  const [services, setServices] = useState(servicePricing)
+  const [modal, setModal] = useState(false)
+  const [form, setForm] = useState(emptyService)
+  const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v }))
+
+  const submit = (e) => {
+    e.preventDefault()
+    if (!form.service.trim()) return
+    const item = { service: form.service, price: form.price || 'On request', category: form.category }
+    setServices((list) => [...list, item])
+    setModal(false)
+    setForm(emptyService)
+    pushNotification({ type: 'system', title: 'Service added', text: `${item.service} added to the catalogue.`, tone: 'gold', icon: 'Tag' })
+  }
+
+  const quote = (s) => {
+    pushNotification({ type: 'system', title: 'Quote generated', text: `Quote generated for ${s.service}.`, tone: 'blue', icon: 'Receipt' })
+  }
+
   return (
     <div>
       <PageHeader title="Investor Services & Pricing" subtitle="Consulting service catalogue with suggested pricing" icon="Tag">
-        <button className="btn-gold btn-sm">+ Add Service</button>
+        <button className="btn-gold btn-sm" onClick={() => { setForm(emptyService); setModal(true) }}>+ Add Service</button>
       </PageHeader>
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -18,7 +43,7 @@ export default function ServicesPricing() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {servicePricing.map((s) => {
+        {services.map((s) => {
           const isFeatured = featured.includes(s.service)
           return (
             <Card key={s.service} className={`card-pad flex flex-col justify-between ${isFeatured ? 'ring-1 ring-gold-400/30' : ''}`}>
@@ -36,12 +61,34 @@ export default function ServicesPricing() {
                   <div className="text-xs text-slate-500">Suggested price</div>
                   <div className="font-display text-xl font-bold text-gold-300">{s.price}</div>
                 </div>
-                <button className="btn-ghost btn-sm">Quote</button>
+                <button className="btn-ghost btn-sm" onClick={() => quote(s)}>Quote</button>
               </div>
             </Card>
           )
         })}
       </div>
+
+      <Modal
+        open={modal}
+        onClose={() => setModal(false)}
+        title="Add Service"
+        subtitle="Add a service to the catalogue"
+        icon="Tag"
+        footer={
+          <>
+            <button className="btn-ghost btn-sm" onClick={() => setModal(false)}>Cancel</button>
+            <button className="btn-gold btn-sm" onClick={submit}>Add Service</button>
+          </>
+        }
+      >
+        <form onSubmit={submit}>
+          <FormGrid>
+            <TextField label="Service Name" value={form.service} onChange={set('service')} placeholder="e.g. FEMA Advisory Retainer" required full />
+            <TextField label="Suggested Price" value={form.price} onChange={set('price')} placeholder="e.g. ₹1.5 L" />
+            <SelectField label="Category" value={form.category} onChange={set('category')} options={categoryOpts} />
+          </FormGrid>
+        </form>
+      </Modal>
     </div>
   )
 }

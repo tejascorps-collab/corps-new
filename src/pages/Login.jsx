@@ -5,7 +5,7 @@ import { useApp } from '../context/AppContext'
 import { company } from '../data/mockData'
 
 export default function Login() {
-  const { authed, login } = useApp()
+  const { authed, login, pushNotification } = useApp()
   const nav = useNavigate()
   const location = useLocation()
   const from = location.state?.from?.pathname || '/'
@@ -117,7 +117,11 @@ export default function Login() {
             <div>
               <div className="mb-1.5 flex items-center justify-between">
                 <label className="label mb-0" htmlFor="password">Password</label>
-                <button type="button" className="text-xs text-gold-400 hover:text-gold-300">
+                <button
+                  type="button"
+                  onClick={() => pushNotification({ type: 'system', title: 'Reset link sent', text: 'Password reset link sent to your email.', tone: 'blue', icon: 'Mail' })}
+                  className="text-xs text-gold-400 hover:text-gold-300"
+                >
                   Forgot password?
                 </button>
               </div>

@@ -1,7 +1,10 @@
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Card, CardHeader, Badge, StatCard, Tabs, Field, BackLink, Table, Progress, Avatar, initials, Icon,
 } from '../../components/ui/Primitives'
+import { Modal } from '../../components/ui/Modal'
+import { useApp } from '../../context/AppContext'
 import { getProject, investorIdByName } from '../../data/mockData'
 
 const docTone = { Signed: 'green', Filed: 'green', Verified: 'green', Draft: 'slate', 'Pending Signature': 'orange', Pending: 'orange', 'In Progress': 'blue' }
@@ -9,7 +12,16 @@ const docTone = { Signed: 'green', Filed: 'green', Verified: 'green', Draft: 'sl
 export default function FDIProjectDetail() {
   const { id } = useParams()
   const nav = useNavigate()
+  const { pushNotification } = useApp()
+  const [proposal, setProposal] = useState(false)
   const p = getProject(id)
+
+  const downloadDoc = (doc) => {
+    pushNotification({ type: 'system', title: 'Download started', text: `Download started — ${doc.name}.`, tone: 'blue', icon: 'Download' })
+  }
+  const advanceStage = () => {
+    pushNotification({ type: 'fdi', title: 'Stage advanced', text: `${p.name} moved to the next deal stage.`, tone: 'green', icon: 'ArrowRight' })
+  }
 
   if (!p)
     return (
@@ -51,8 +63,8 @@ export default function FDIProjectDetail() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button className="btn-ghost btn-sm"><Icon name="FileText" size={14} /> View Proposal</button>
-            <button className="btn-gold btn-sm"><Icon name="ArrowRight" size={14} /> Advance Stage</button>
+            <button className="btn-ghost btn-sm" onClick={() => setProposal(true)}><Icon name="FileText" size={14} /> View Proposal</button>
+            <button className="btn-gold btn-sm" onClick={advanceStage}><Icon name="ArrowRight" size={14} /> Advance Stage</button>
           </div>
         </div>
       </Card>
@@ -145,7 +157,7 @@ export default function FDIProjectDetail() {
                     return <span className="flex items-center gap-2.5 font-medium text-slate-100"><Icon name="FileText" size={16} className="text-brand-teal" /> {row.name}</span>
                   if (key === 'status') return <Badge tone={docTone[row.status] || 'slate'}>{row.status}</Badge>
                   if (key === 'actions')
-                    return <button className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white"><Icon name="Download" size={15} /></button>
+                    return <button onClick={() => downloadDoc(row)} className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white"><Icon name="Download" size={15} /></button>
                   return row[key]
                 }}
               />
@@ -174,6 +186,34 @@ export default function FDIProjectDetail() {
           )
         }}
       </Tabs>
+
+      <Modal
+        open={proposal}
+        onClose={() => setProposal(false)}
+        title="Proposal Summary"
+        subtitle={`${p.name} — ${p.id}`}
+        icon="FileText"
+        size="lg"
+        footer={<button className="btn-gold btn-sm" onClick={() => setProposal(false)}>Close</button>}
+      >
+        <div className="space-y-2">
+          {[
+            ['Project', p.name],
+            ['Sector', p.sector],
+            ['Deal Size', p.size],
+            ['FDI Route', p.route],
+            ['Lead Investor', p.investor],
+            ['Current Stage', p.stage],
+            ['Expected Close', p.closeDate],
+            ['Deal Progress', `${p.progress}%`],
+          ].map(([label, val]) => (
+            <div key={label} className="flex items-center justify-between rounded-xl bg-white/[0.02] px-3 py-2.5 ring-1 ring-white/5">
+              <span className="text-sm text-slate-400">{label}</span>
+              <span className="text-sm font-semibold text-slate-100">{val}</span>
+            </div>
+          ))}
+        </div>
+      </Modal>
     </div>
   )
 }

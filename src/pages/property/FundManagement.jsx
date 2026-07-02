@@ -1,5 +1,8 @@
+import { useState } from 'react'
 import { PageHeader, Card, CardHeader, StatCard, Icon } from '../../components/ui/Primitives'
+import { Modal, FormGrid, TextField, SelectField } from '../../components/ui/Modal'
 import { DonutChart } from '../../components/charts/Charts'
+import { useApp } from '../../context/AppContext'
 import { funds } from '../../data/mockData'
 
 const alloc = [
@@ -7,12 +10,57 @@ const alloc = [
   { name: 'Available Balance', value: 19, color: '#2ec4b6' },
 ]
 
+const txnTypes = ['Expense', 'Contribution', 'Payout']
+const txnTone = { Expense: 'orange', Contribution: 'green', Payout: 'blue' }
+
 export default function FundManagement() {
+  const { pushNotification } = useApp()
+  const [open, setOpen] = useState(false)
+  const [form, setForm] = useState({ type: 'Expense', head: '', amount: '' })
+  const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v }))
+
+  const submit = (e) => {
+    e?.preventDefault?.()
+    if (!form.head.trim() || !form.amount.trim()) return
+    setOpen(false)
+    pushNotification({
+      type: 'system',
+      title: 'Transaction recorded',
+      text: `${form.type}: ${form.head.trim()} — ${form.amount.trim()}.`,
+      tone: txnTone[form.type] || 'gold',
+      icon: 'Receipt',
+    })
+    setForm({ type: 'Expense', head: '', amount: '' })
+  }
+
   return (
     <div>
       <PageHeader title="Fund Management" subtitle="Investor funds, total pool, property allocation & expense tracking" icon="PiggyBank">
-        <button className="btn-gold btn-sm">Record Transaction</button>
+        <button className="btn-gold btn-sm" onClick={() => setOpen(true)}>Record Transaction</button>
       </PageHeader>
+
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Record Transaction"
+        subtitle="Log a fund movement"
+        icon="Receipt"
+        size="md"
+        footer={
+          <>
+            <button className="btn-ghost btn-sm" onClick={() => setOpen(false)}>Cancel</button>
+            <button className="btn-gold btn-sm" onClick={submit}>Record</button>
+          </>
+        }
+      >
+        <form onSubmit={submit}>
+          <FormGrid>
+            <SelectField label="Type" value={form.type} onChange={set('type')} options={txnTypes} />
+            <TextField label="Amount" value={form.amount} onChange={set('amount')} placeholder="e.g. ₹2 Cr" required />
+            <TextField label="Head / Description" value={form.head} onChange={set('head')} placeholder="e.g. Renovation payment" required full />
+          </FormGrid>
+        </form>
+      </Modal>
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Total Pool" value={funds.totalPool} delta={12.0} up icon="PiggyBank" tint="gold" />

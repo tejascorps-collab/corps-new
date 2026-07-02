@@ -20,7 +20,7 @@ const typeTint = {
 
 export default function Topbar({ onMenu }) {
   const nav = useNavigate()
-  const { role, setRole, canInstall, installApp, logout, currentUser } = useApp()
+  const { role, setRole, canInstall, installApp, logout, currentUser, pushNotification } = useApp()
   const user = currentUser || company.user
   const [q, setQ] = useState('')
   const [open, setOpen] = useState(false)
@@ -91,7 +91,7 @@ export default function Topbar({ onMenu }) {
       </div>
 
       <div className="flex flex-1 items-center justify-end gap-1.5 sm:gap-2">
-        <IconBtn icon={Globe} />
+        <IconBtn icon={Globe} onClick={() => pushNotification({ type: 'system', title: 'Language', text: 'Language: English (US)', tone: 'blue', icon: 'Globe' })} />
         <NotificationBell />
         <button onClick={() => nav('/support')} className="relative grid h-10 w-10 place-items-center rounded-xl text-slate-300 transition hover:bg-white/5 hover:text-white">
           <MessageSquare size={19} />
@@ -171,9 +171,9 @@ export default function Topbar({ onMenu }) {
   )
 }
 
-function IconBtn({ icon: Icon, badge, tone = 'gold' }) {
+function IconBtn({ icon: Icon, badge, tone = 'gold', onClick }) {
   return (
-    <button className="relative grid h-10 w-10 place-items-center rounded-xl text-slate-300 transition hover:bg-white/5 hover:text-white">
+    <button onClick={onClick} className="relative grid h-10 w-10 place-items-center rounded-xl text-slate-300 transition hover:bg-white/5 hover:text-white">
       <Icon size={19} />
       {badge && (
         <span className={`absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full px-1 text-[9px] font-bold text-ink-950 ${tone === 'teal' ? 'bg-brand-teal' : 'bg-gold-400'}`}>

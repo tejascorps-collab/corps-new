@@ -1,6 +1,9 @@
+import { useState } from 'react'
 import { PageHeader, Card, Badge, StatCard, Avatar, initials, Icon } from '../../components/ui/Primitives'
 import { HBarChart } from '../../components/charts/Charts'
-import { leads, crmPipeline } from '../../data/mockData'
+import { Modal, FormGrid, TextField, SelectField } from '../../components/ui/Modal'
+import { useApp } from '../../context/AppContext'
+import { leads as seedLeads, crmPipeline } from '../../data/mockData'
 
 const stages = ['New', 'Contacted', 'Qualified', 'Proposal', 'Negotiation']
 const channels = [
@@ -11,11 +14,45 @@ const channels = [
 ]
 
 export default function CRM() {
+  const { pushNotification } = useApp()
+  const [leads, setLeads] = useState(seedLeads)
+  const [open, setOpen] = useState(false)
+  const [form, setForm] = useState({ name: '', company: '', type: 'Investor', stage: 'New', value: '' })
+
+  const submit = () => {
+    if (!form.name.trim()) return
+    const lead = {
+      name: form.name.trim(),
+      company: form.company.trim() || '—',
+      type: form.type,
+      source: 'Manual',
+      stage: form.stage,
+      owner: 'Sales · You',
+      value: form.value.trim() || '—',
+      last: 'just now',
+    }
+    setLeads((l) => [lead, ...l])
+    setOpen(false)
+    setForm({ name: '', company: '', type: 'Investor', stage: 'New', value: '' })
+    pushNotification({ type: 'system', title: 'Lead added', text: `${lead.name} added to pipeline.`, tone: 'green', icon: 'Contact' })
+  }
+
   return (
     <div>
       <PageHeader title="CRM & Leads" subtitle="Leads, calls, follow-ups, WhatsApp, email, meetings & tasks" icon="Contact">
-        <button className="btn-gold btn-sm">+ Add Lead</button>
+        <button className="btn-gold btn-sm" onClick={() => setOpen(true)}>+ Add Lead</button>
       </PageHeader>
+
+      <Modal open={open} onClose={() => setOpen(false)} title="Add Lead" subtitle="Create a new pipeline lead" icon="Contact"
+        footer={<><button className="btn-ghost btn-sm" onClick={() => setOpen(false)}>Cancel</button><button className="btn-gold btn-sm" onClick={submit}>Add Lead</button></>}>
+        <FormGrid>
+          <TextField label="Name" value={form.name} onChange={(v) => setForm((f) => ({ ...f, name: v }))} placeholder="Full name" required />
+          <TextField label="Company" value={form.company} onChange={(v) => setForm((f) => ({ ...f, company: v }))} placeholder="Company" />
+          <SelectField label="Type" value={form.type} onChange={(v) => setForm((f) => ({ ...f, type: v }))} options={['Investor', 'Seeker']} />
+          <SelectField label="Stage" value={form.stage} onChange={(v) => setForm((f) => ({ ...f, stage: v }))} options={stages} />
+          <TextField label="Value" value={form.value} onChange={(v) => setForm((f) => ({ ...f, value: v }))} placeholder="₹5 Cr" full />
+        </FormGrid>
+      </Modal>
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {channels.map((c) => (

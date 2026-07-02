@@ -20,7 +20,42 @@ export default function InvestorDetail() {
   const [edit, setEdit] = useState(false)
   const [confirm, setConfirm] = useState(false)
   const [form, setForm] = useState(null)
+  const [message, setMessage] = useState(false)
+  const [messageText, setMessageText] = useState('')
+  const [invest, setInvest] = useState(false)
+  const [investForm, setInvestForm] = useState({ asset: '', amount: '', type: 'Equity' })
+  const [note, setNote] = useState(false)
+  const [noteText, setNoteText] = useState('')
+  const setInv = (k) => (v) => setInvestForm((f) => ({ ...f, [k]: v }))
   const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v }))
+
+  const downloadDoc = (doc) => {
+    pushNotification({ type: 'investor', title: 'Download started', text: `Download started — ${doc.name}.`, tone: 'blue', icon: 'Download' })
+  }
+  const addNote = () => {
+    if (!noteText.trim()) return
+    setNote(false)
+    pushNotification({ type: 'investor', title: 'Note added', text: `Relationship note added for ${inv.name}.`, tone: 'gold', icon: 'StickyNote' })
+    setNoteText('')
+  }
+
+  const sendMessage = () => {
+    if (!messageText.trim()) return
+    setMessage(false)
+    pushNotification({ type: 'investor', title: 'Message sent', text: `Message sent to ${inv.name}.`, tone: 'blue', icon: 'MessageSquare' })
+    setMessageText('')
+  }
+  const submitInvestment = (e) => {
+    e.preventDefault()
+    if (!investForm.asset.trim()) return
+    const asset = investForm.asset
+    setInvest(false)
+    setInvestForm({ asset: '', amount: '', type: 'Equity' })
+    pushNotification({ type: 'investor', title: 'Investment recorded', text: `${inv.name} → ${asset} (${investForm.type}).`, tone: 'green', icon: 'Coins' })
+  }
+  const contactRm = () => {
+    pushNotification({ type: 'investor', title: 'Request sent', text: `Request sent to ${inv.rm}.`, tone: 'gold', icon: 'UserCog' })
+  }
 
   const doDelete = () => {
     const name = inv.name
@@ -88,10 +123,10 @@ export default function InvestorDetail() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button className="btn-ghost btn-sm"><Icon name="Mail" size={14} /> Message</button>
+            <button className="btn-ghost btn-sm" onClick={() => setMessage(true)}><Icon name="Mail" size={14} /> Message</button>
             <button className="btn-ghost btn-sm" onClick={openEdit}><Icon name="Pencil" size={14} /> Edit</button>
             <button className="btn-ghost btn-sm text-brand-red hover:bg-brand-red/10" onClick={() => setConfirm(true)}><Icon name="Trash2" size={14} /> Delete</button>
-            <button className="btn-gold btn-sm"><Icon name="Plus" size={14} /> New Investment</button>
+            <button className="btn-gold btn-sm" onClick={() => { setInvestForm({ asset: '', amount: '', type: 'Equity' }); setInvest(true) }}><Icon name="Plus" size={14} /> New Investment</button>
           </div>
         </div>
       </Card>
@@ -134,7 +169,7 @@ export default function InvestorDetail() {
                         <div className="text-xs text-slate-500">Investment Manager</div>
                       </div>
                     </div>
-                    <button className="btn-ghost btn-sm mt-4 w-full">Contact RM</button>
+                    <button className="btn-ghost btn-sm mt-4 w-full" onClick={contactRm}>Contact RM</button>
                     <div className="mt-4 rounded-xl bg-white/[0.02] p-3 text-sm ring-1 ring-white/5">
                       <div className="text-xs text-slate-500">Portfolio Health</div>
                       <div className="mt-1 flex items-center gap-2">
@@ -198,7 +233,7 @@ export default function InvestorDetail() {
                     )
                   if (key === 'status') return <Badge tone={kycTone[row.status] || 'slate'}>{row.status}</Badge>
                   if (key === 'actions')
-                    return <button className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white"><Icon name="Download" size={15} /></button>
+                    return <button onClick={() => downloadDoc(row)} className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white"><Icon name="Download" size={15} /></button>
                   return row[key]
                 }}
               />
@@ -227,7 +262,7 @@ export default function InvestorDetail() {
           return (
             <Card>
               <CardHeader title="Relationship Notes" icon="StickyNote"
-                action={<button className="btn-gold btn-sm">+ Add Note</button>} />
+                action={<button className="btn-gold btn-sm" onClick={() => { setNoteText(''); setNote(true) }}>+ Add Note</button>} />
               <div className="card-pad space-y-3 pt-3">
                 {inv.notes.map((n, i) => (
                   <div key={i} className="rounded-xl bg-white/[0.02] p-4 ring-1 ring-white/5">
@@ -274,6 +309,76 @@ export default function InvestorDetail() {
           </form>
         </Modal>
       )}
+
+      <Modal
+        open={message}
+        onClose={() => setMessage(false)}
+        title="Message Investor"
+        subtitle={inv.name}
+        icon="Mail"
+        footer={
+          <>
+            <button className="btn-ghost btn-sm" onClick={() => setMessage(false)}>Cancel</button>
+            <button className="btn-gold btn-sm" onClick={sendMessage}><Icon name="Send" size={14} /> Send</button>
+          </>
+        }
+      >
+        <div>
+          <label className="label">Message</label>
+          <textarea
+            className="input min-h-[140px] resize-y"
+            value={messageText}
+            onChange={(e) => setMessageText(e.target.value)}
+            placeholder={`Write a message to ${inv.name}…`}
+          />
+        </div>
+      </Modal>
+
+      <Modal
+        open={note}
+        onClose={() => setNote(false)}
+        title="Add Relationship Note"
+        subtitle={inv.name}
+        icon="StickyNote"
+        footer={
+          <>
+            <button className="btn-ghost btn-sm" onClick={() => setNote(false)}>Cancel</button>
+            <button className="btn-gold btn-sm" onClick={addNote}>Add Note</button>
+          </>
+        }
+      >
+        <div>
+          <label className="label">Note</label>
+          <textarea
+            className="input min-h-[140px] resize-y"
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            placeholder={`Add a relationship note about ${inv.name}…`}
+          />
+        </div>
+      </Modal>
+
+      <Modal
+        open={invest}
+        onClose={() => setInvest(false)}
+        title="New Investment"
+        subtitle={`Record an investment for ${inv.name}`}
+        icon="Plus"
+        footer={
+          <>
+            <button className="btn-ghost btn-sm" onClick={() => setInvest(false)}>Cancel</button>
+            <button className="btn-gold btn-sm" onClick={submitInvestment}>Add Investment</button>
+          </>
+        }
+      >
+        <form onSubmit={submitInvestment}>
+          <FormGrid>
+            <TextField label="Asset / Company" value={investForm.asset} onChange={setInv('asset')} placeholder="e.g. GreenTech Solutions" required full />
+            <TextField label="Amount" value={investForm.amount} onChange={setInv('amount')} placeholder="e.g. ₹5 Cr" />
+            <SelectField label="Type" value={investForm.type} onChange={setInv('type')} options={['Equity', 'Debt', 'Convertible', 'Property']} />
+          </FormGrid>
+        </form>
+      </Modal>
 
       <ConfirmDialog
         open={confirm}

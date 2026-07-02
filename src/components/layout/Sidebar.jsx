@@ -1,9 +1,14 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { navGroups } from '../../config/nav'
 import { Icon } from '../ui/Primitives'
 import { X } from 'lucide-react'
 
 export default function Sidebar({ open, onClose }) {
+  const nav = useNavigate()
+  const explore = () => {
+    nav('/portal/investor')
+    if (onClose) onClose()
+  }
   return (
     <>
       {/* Mobile overlay */}
@@ -54,7 +59,7 @@ export default function Sidebar({ open, onClose }) {
           <div className="mx-1 overflow-hidden rounded-2xl bg-gradient-to-br from-gold-700/30 via-ink-800 to-ink-900 p-4 ring-1 ring-gold-400/20">
             <div className="font-display text-sm font-bold text-gold-200">Grow Your Wealth Globally</div>
             <p className="mt-1 text-xs text-slate-400">We manage. You prosper.</p>
-            <button className="btn-gold btn-sm mt-3 w-full">Explore Opportunities</button>
+            <button className="btn-gold btn-sm mt-3 w-full" onClick={explore}>Explore Opportunities</button>
           </div>
         </nav>
       </aside>

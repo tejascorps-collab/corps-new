@@ -1,5 +1,11 @@
+import { useState } from 'react'
 import { PageHeader, Card, CardHeader, Badge, Table, Progress, StatCard } from '../../components/ui/Primitives'
+import { Modal, FormGrid, TextField, SelectField } from '../../components/ui/Modal'
+import { useApp } from '../../context/AppContext'
 import { dueDiligence } from '../../data/mockData'
+
+const scopeOpts = ['Full Diligence', 'Financial Only', 'Legal Only', 'Litigation & Credit']
+const emptyDD = { project: '', assignee: '', scope: 'Full Diligence' }
 
 const checks = [
   'Company Verification', 'Financial Analysis', 'Legal Verification', 'Litigation Check',
@@ -14,10 +20,24 @@ function tone(v) {
 }
 
 export default function DueDiligence() {
+  const { pushNotification } = useApp()
+  const [modal, setModal] = useState(false)
+  const [form, setForm] = useState(emptyDD)
+  const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v }))
+
+  const submit = (e) => {
+    e.preventDefault()
+    if (!form.project.trim()) return
+    const name = form.project
+    setModal(false)
+    setForm(emptyDD)
+    pushNotification({ type: 'system', title: 'Diligence started', text: `${form.scope} initiated for ${name}.`, tone: 'teal', icon: 'Search' })
+  }
+
   return (
     <div>
       <PageHeader title="Due Diligence" subtitle="Company, financial, legal, litigation, credit & director verification" icon="Search">
-        <button className="btn-gold btn-sm">+ Start Diligence</button>
+        <button className="btn-gold btn-sm" onClick={() => { setForm(emptyDD); setModal(true) }}>+ Start Diligence</button>
       </PageHeader>
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -62,6 +82,28 @@ export default function DueDiligence() {
           ))}
         </div>
       </Card>
+
+      <Modal
+        open={modal}
+        onClose={() => setModal(false)}
+        title="Start Diligence"
+        subtitle="Open a new due diligence case"
+        icon="Search"
+        footer={
+          <>
+            <button className="btn-ghost btn-sm" onClick={() => setModal(false)}>Cancel</button>
+            <button className="btn-gold btn-sm" onClick={submit}>Start Diligence</button>
+          </>
+        }
+      >
+        <form onSubmit={submit}>
+          <FormGrid>
+            <TextField label="Company / Project" value={form.project} onChange={set('project')} placeholder="e.g. GreenTech Solutions" required full />
+            <TextField label="Assignee" value={form.assignee} onChange={set('assignee')} placeholder="e.g. Anita Rao" />
+            <SelectField label="Scope" value={form.scope} onChange={set('scope')} options={scopeOpts} />
+          </FormGrid>
+        </form>
+      </Modal>
     </div>
   )
 }

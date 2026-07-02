@@ -1,14 +1,52 @@
+import { useState } from 'react'
 import { PageHeader, Card, CardHeader, Badge, StatCard, Table } from '../../components/ui/Primitives'
 import { CashflowChart } from '../../components/charts/Charts'
+import { Modal, FormGrid, TextField, SelectField } from '../../components/ui/Modal'
+import { useApp } from '../../context/AppContext'
+import { downloadCsv } from '../../lib/exportCsv'
 import { invoices, cashflowSeries } from '../../data/mockData'
 
 export default function Accounts() {
+  const { pushNotification } = useApp()
+  const [open, setOpen] = useState(false)
+  const [form, setForm] = useState({ client: '', amount: '', gst: '18', due: '' })
+
+  const exportGst = () => {
+    downloadCsv('gst-invoices.csv', invoices, [
+      { key: 'no', label: 'Invoice #' },
+      { key: 'client', label: 'Client' },
+      { key: 'service', label: 'Service' },
+      { key: 'amount', label: 'Amount' },
+      { key: 'gst', label: 'GST' },
+      { key: 'total', label: 'Total' },
+      { key: 'status', label: 'Status' },
+    ])
+    pushNotification({ type: 'system', title: 'GST exported', text: `${invoices.length} invoices exported to CSV.`, tone: 'blue', icon: 'Download' })
+  }
+
+  const submit = () => {
+    if (!form.client.trim()) return
+    setOpen(false)
+    pushNotification({ type: 'system', title: 'Invoice created', text: `Invoice for ${form.client.trim()} drafted.`, tone: 'green', icon: 'Receipt' })
+    setForm({ client: '', amount: '', gst: '18', due: '' })
+  }
+
   return (
     <div>
       <PageHeader title="Accounts & Finance" subtitle="Investor payments, invoices, GST, TDS, commission & cash flow" icon="Landmark">
-        <button className="btn-ghost btn-sm">Export GST</button>
-        <button className="btn-gold btn-sm">+ Create Invoice</button>
+        <button className="btn-ghost btn-sm" onClick={exportGst}>Export GST</button>
+        <button className="btn-gold btn-sm" onClick={() => setOpen(true)}>+ Create Invoice</button>
       </PageHeader>
+
+      <Modal open={open} onClose={() => setOpen(false)} title="Create Invoice" subtitle="Draft a new service invoice" icon="Receipt"
+        footer={<><button className="btn-ghost btn-sm" onClick={() => setOpen(false)}>Cancel</button><button className="btn-gold btn-sm" onClick={submit}>Create</button></>}>
+        <FormGrid>
+          <TextField label="Client" value={form.client} onChange={(v) => setForm((f) => ({ ...f, client: v }))} placeholder="Client name" required full />
+          <TextField label="Amount (₹)" value={form.amount} onChange={(v) => setForm((f) => ({ ...f, amount: v }))} placeholder="2,00,000" />
+          <SelectField label="GST %" value={form.gst} onChange={(v) => setForm((f) => ({ ...f, gst: v }))} options={['0', '5', '12', '18', '28']} />
+          <TextField label="Due Date" type="date" value={form.due} onChange={(v) => setForm((f) => ({ ...f, due: v }))} full />
+        </FormGrid>
+      </Modal>
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Monthly Revenue" value="₹4.75 Cr" delta={9.0} up icon="IndianRupee" tint="green" />

@@ -105,7 +105,8 @@ export default function Investors() {
   return (
     <div>
       <PageHeader title="Investor Management" subtitle="Registration, profiles, KYC, capacity & assigned relationship managers" icon="Users">
-        <button className="btn-ghost btn-sm">Import</button>
+        <button className="btn-ghost btn-sm" onClick={() => pushNotification({ type: 'investor', title: 'Import started', text: 'Bulk investor import — upload a CSV to begin.', tone: 'blue', icon: 'Download' })}>Import</button>
+        <button className="btn-ghost btn-sm" onClick={() => pushNotification({ type: 'investor', title: 'Template library', text: 'Opening investor onboarding & KYC templates.', tone: 'gold', icon: 'FileText' })}>Templates</button>
         <button className="btn-gold btn-sm" onClick={openAdd}>+ Register Investor</button>
       </PageHeader>
 

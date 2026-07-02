@@ -127,6 +127,7 @@ function TicketsTable({ tickets, onDelete }) {
 }
 
 function LiveChatConsole() {
+  const { pushNotification } = useApp()
   const [activeId, setActiveId] = useState(chatConversations[0].id)
   // per-conversation message store (seeded from mock)
   const [store, setStore] = useState(() => Object.fromEntries(chatConversations.map((c) => [c.id, c.messages])))
@@ -187,8 +188,8 @@ function LiveChatConsole() {
             <div className="text-sm font-semibold text-white">{active.name}</div>
             <div className="text-[11px] text-slate-500">{active.role} · {active.online ? 'Online' : 'Offline'}</div>
           </div>
-          <button className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white"><Icon name="Phone" size={16} /></button>
-          <button className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white"><Icon name="MoreVertical" size={16} /></button>
+          <button onClick={() => pushNotification({ type: 'support', title: 'Calling requester', text: `Starting a call with ${active.name}…`, tone: 'green', icon: 'Phone' })} className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white"><Icon name="Phone" size={16} /></button>
+          <button onClick={() => pushNotification({ type: 'support', title: 'Conversation', text: `More options for ${active.name}.`, tone: 'blue', icon: 'MoreVertical' })} className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white"><Icon name="MoreVertical" size={16} /></button>
         </div>
 
         <div className="flex-1 space-y-3 overflow-y-auto bg-ink-900/40 p-4">
@@ -205,7 +206,7 @@ function LiveChatConsole() {
         </div>
 
         <form onSubmit={send} className="flex items-center gap-2 border-t border-white/10 p-3">
-          <button type="button" className="rounded-lg p-2 text-slate-400 hover:bg-white/5"><Icon name="Paperclip" size={18} /></button>
+          <button type="button" onClick={() => pushNotification({ type: 'support', title: 'Attach a file', text: 'File attachments are coming soon.', tone: 'gold', icon: 'Paperclip' })} className="rounded-lg p-2 text-slate-400 hover:bg-white/5"><Icon name="Paperclip" size={18} /></button>
           <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Type your reply…" className="input py-2.5" />
           <button type="submit" className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-gradient text-ink-950 hover:brightness-110"><Send size={17} /></button>
         </form>

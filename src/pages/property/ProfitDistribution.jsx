@@ -1,4 +1,7 @@
+import { useState } from 'react'
 import { PageHeader, Card, CardHeader, Badge, StatCard, Table, Icon } from '../../components/ui/Primitives'
+import { Modal } from '../../components/ui/Modal'
+import { useApp } from '../../context/AppContext'
 import { profitDistribution } from '../../data/mockData'
 import { ArrowDown } from 'lucide-react'
 
@@ -10,11 +13,89 @@ const flow = [
 ]
 
 export default function ProfitDistribution() {
+  const { pushNotification } = useApp()
+  const [open, setOpen] = useState(false)
+  const [distOpen, setDistOpen] = useState(false)
+
+  const runSettlement = () => {
+    setOpen(false)
+    pushNotification({
+      type: 'system',
+      title: 'Settlement processed',
+      text: 'Settlement processed — payouts issued.',
+      tone: 'green',
+      icon: 'Coins',
+    })
+  }
+
+  const distribute = () => {
+    setDistOpen(false)
+    pushNotification({
+      type: 'system',
+      title: 'Distribution sent',
+      text: 'Investor payout of ₹0.336 Cr issued to all investors.',
+      tone: 'green',
+      icon: 'Send',
+    })
+  }
+
   return (
     <div>
       <PageHeader title="Profit Distribution" subtitle="Auto-calculated profit sharing & investor settlement (80% / 20%)" icon="Coins">
-        <button className="btn-gold btn-sm">Run Settlement</button>
+        <button className="btn-gold btn-sm" onClick={() => setOpen(true)}>Run Settlement</button>
       </PageHeader>
+
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Run Settlement"
+        subtitle="Confirm profit distribution"
+        icon="Coins"
+        size="sm"
+        footer={
+          <>
+            <button className="btn-ghost btn-sm" onClick={() => setOpen(false)}>Cancel</button>
+            <button className="btn-gold btn-sm" onClick={runSettlement}>Confirm & Run</button>
+          </>
+        }
+      >
+        <div className="space-y-3 text-sm text-slate-300">
+          <p>This will settle the pending distribution and issue payouts using the 80% / 20% split.</p>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between rounded-xl bg-white/[0.02] px-4 py-2.5 ring-1 ring-white/5">
+              <span>Net Profit</span><span className="font-semibold text-brand-green">₹0.42 Cr</span>
+            </div>
+            <div className="flex items-center justify-between rounded-xl bg-white/[0.02] px-4 py-2.5 ring-1 ring-white/5">
+              <span>Investor Payout (80%)</span><span className="font-semibold text-white">₹0.336 Cr</span>
+            </div>
+            <div className="flex items-center justify-between rounded-xl bg-white/[0.02] px-4 py-2.5 ring-1 ring-white/5">
+              <span>Company Share (20%)</span><span className="font-semibold text-white">₹0.084 Cr</span>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        open={distOpen}
+        onClose={() => setDistOpen(false)}
+        title="Distribute to Investors"
+        subtitle="Confirm investor payout"
+        icon="Send"
+        size="sm"
+        footer={
+          <>
+            <button className="btn-ghost btn-sm" onClick={() => setDistOpen(false)}>Cancel</button>
+            <button className="btn-gold btn-sm" onClick={distribute}>Confirm & Distribute</button>
+          </>
+        }
+      >
+        <div className="space-y-3 text-sm text-slate-300">
+          <p>Release the investor share of the current net profit to all pooled investors.</p>
+          <div className="flex items-center justify-between rounded-xl bg-white/[0.02] px-4 py-2.5 ring-1 ring-white/5">
+            <span>Investor Payout (80%)</span><span className="font-semibold text-brand-green">₹0.336 Cr</span>
+          </div>
+        </div>
+      </Modal>
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Profit Distributed" value="₹3.45 Cr" delta={22.0} up icon="Coins" tint="gold" />
@@ -47,7 +128,7 @@ export default function ProfitDistribution() {
               <Split label="Investor Share" pct={80} value="₹0.336 Cr" tone="bg-brand-green" />
               <Split label="Company Share" pct={20} value="₹0.084 Cr" tone="bg-brand-purple" />
             </div>
-            <button className="btn-gold btn-sm mt-5 w-full"><Icon name="Send" size={14} /> Distribute to Investors</button>
+            <button className="btn-gold btn-sm mt-5 w-full" onClick={() => setDistOpen(true)}><Icon name="Send" size={14} /> Distribute to Investors</button>
           </Card>
         </div>
 

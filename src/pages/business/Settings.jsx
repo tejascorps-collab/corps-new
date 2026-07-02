@@ -1,4 +1,7 @@
+import { useState } from 'react'
 import { PageHeader, Card, CardHeader, Badge, Table, Avatar, initials, Icon } from '../../components/ui/Primitives'
+import { Modal, FormGrid, TextField, SelectField } from '../../components/ui/Modal'
+import { useApp } from '../../context/AppContext'
 import { teamMembers, roles } from '../../data/mockData'
 
 // Role → permission preview matrix
@@ -12,10 +15,38 @@ const matrix = {
 }
 
 export default function Settings() {
+  const { pushNotification } = useApp()
+  const [config, setConfig] = useState({
+    company: 'FDI Prime Investments',
+    currency: 'INR (₹)',
+    ratio: '80 / 20',
+    fiscal: 'Apr – Mar',
+    gst: '29ABCDE1234F1Z5',
+  })
+  const [open, setOpen] = useState(false)
+  const [draft, setDraft] = useState(config)
+
+  const [inviteOpen, setInviteOpen] = useState(false)
+  const [invite, setInvite] = useState({ email: '', role: roles[0] })
+
+  const openEditor = () => { setDraft(config); setOpen(true) }
+  const saveConfig = () => {
+    setConfig(draft)
+    setOpen(false)
+    pushNotification({ type: 'system', title: 'Settings updated', text: 'Platform configuration saved.', tone: 'green', icon: 'Settings' })
+  }
+
+  const openInvite = () => { setInvite({ email: '', role: roles[0] }); setInviteOpen(true) }
+  const sendInvite = () => {
+    if (!invite.email.trim()) return
+    setInviteOpen(false)
+    pushNotification({ type: 'system', title: 'Invitation sent', text: `Invite sent to ${invite.email} (${invite.role}).`, tone: 'green', icon: 'UserPlus' })
+  }
+
   return (
     <div>
       <PageHeader title="Settings & Users" subtitle="Team members, roles, permissions & platform configuration" icon="Settings">
-        <button className="btn-gold btn-sm">+ Invite User</button>
+        <button className="btn-gold btn-sm" onClick={openInvite}>+ Invite User</button>
       </PageHeader>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
@@ -46,7 +77,7 @@ export default function Settings() {
                   if (key === 'role') return <Badge tone="slate">{row.role}</Badge>
                   if (key === 'status') return <Badge>{row.status}</Badge>
                   if (key === 'actions')
-                    return <button className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white"><Icon name="MoreHorizontal" size={16} /></button>
+                    return <button onClick={() => pushNotification({ type: 'system', title: 'Member actions', text: `Manage ${row.name} (${row.role}).`, tone: 'blue', icon: 'MoreHorizontal' })} className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white"><Icon name="MoreHorizontal" size={16} /></button>
                   return row[key]
                 }}
               />
@@ -94,11 +125,11 @@ export default function Settings() {
             <h3 className="mb-3 text-sm font-semibold text-white">Platform</h3>
             <div className="space-y-3">
               {[
-                ['Company Name', 'FDI Prime Investments'],
-                ['Base Currency', 'INR (₹)'],
-                ['Profit Share Ratio', '80 / 20'],
-                ['Fiscal Year', 'Apr – Mar'],
-                ['GST Number', '29ABCDE1234F1Z5'],
+                ['Company Name', config.company],
+                ['Base Currency', config.currency],
+                ['Profit Share Ratio', config.ratio],
+                ['Fiscal Year', config.fiscal],
+                ['GST Number', config.gst],
               ].map(([l, v]) => (
                 <div key={l} className="flex items-center justify-between text-sm">
                   <span className="text-slate-400">{l}</span>
@@ -106,10 +137,31 @@ export default function Settings() {
                 </div>
               ))}
             </div>
-            <button className="btn-ghost btn-sm mt-4 w-full">Edit Configuration</button>
+            <button className="btn-ghost btn-sm mt-4 w-full" onClick={openEditor}>Edit Configuration</button>
           </Card>
         </div>
       </div>
+
+      <Modal open={open} onClose={() => setOpen(false)} title="Edit Configuration" subtitle="Platform settings" icon="Settings"
+        footer={<><button className="btn-ghost btn-sm" onClick={() => setOpen(false)}>Cancel</button><button className="btn-gold btn-sm" onClick={saveConfig}>Save</button></>}>
+        <FormGrid>
+          <TextField label="Company Name" value={draft.company} onChange={(v) => setDraft((d) => ({ ...d, company: v }))} full />
+          <SelectField label="Base Currency" value={draft.currency} onChange={(v) => setDraft((d) => ({ ...d, currency: v }))} options={['INR (₹)', 'USD ($)', 'AED (د.إ)', 'SGD (S$)']} />
+          <TextField label="Profit Share Ratio" value={draft.ratio} onChange={(v) => setDraft((d) => ({ ...d, ratio: v }))} />
+          <SelectField label="Fiscal Year" value={draft.fiscal} onChange={(v) => setDraft((d) => ({ ...d, fiscal: v }))} options={['Apr – Mar', 'Jan – Dec']} />
+          <TextField label="GST Number" value={draft.gst} onChange={(v) => setDraft((d) => ({ ...d, gst: v }))} full />
+        </FormGrid>
+      </Modal>
+
+      <Modal open={inviteOpen} onClose={() => setInviteOpen(false)} title="Invite User" subtitle="Send an invitation to join the platform" icon="UserPlus"
+        footer={<><button className="btn-ghost btn-sm" onClick={() => setInviteOpen(false)}>Cancel</button><button className="btn-gold btn-sm" onClick={sendInvite}>Send Invite</button></>}>
+        <form onSubmit={(e) => { e.preventDefault(); sendInvite() }}>
+          <FormGrid>
+            <TextField label="Email Address" value={invite.email} onChange={(v) => setInvite((i) => ({ ...i, email: v }))} placeholder="name@company.com" required full />
+            <SelectField label="Role" value={invite.role} onChange={(v) => setInvite((i) => ({ ...i, role: v }))} options={roles} full />
+          </FormGrid>
+        </form>
+      </Modal>
     </div>
   )
 }

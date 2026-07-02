@@ -103,7 +103,8 @@ export default function InvestmentSeekers() {
   return (
     <div>
       <PageHeader title="Investment Seeker Management" subtitle="Businesses looking for FDI — CIN, financials, pitch decks & valuation" icon="Building">
-        <button className="btn-ghost btn-sm">Templates</button>
+        <button className="btn-ghost btn-sm" onClick={() => pushNotification({ type: 'seeker', title: 'Template library', text: 'Opening the seeker onboarding template library.', tone: 'gold', icon: 'FileText' })}>Templates</button>
+        <button className="btn-ghost btn-sm" onClick={() => pushNotification({ type: 'seeker', title: 'Import started', text: 'Bulk seeker import — upload a CSV to begin.', tone: 'blue', icon: 'Download' })}>Import</button>
         <button className="btn-gold btn-sm" onClick={openAdd}>+ Add Seeker</button>
       </PageHeader>
 

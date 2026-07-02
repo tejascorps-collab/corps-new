@@ -24,7 +24,36 @@ export default function SeekerDetail() {
   const [edit, setEdit] = useState(false)
   const [confirm, setConfirm] = useState(false)
   const [form, setForm] = useState(null)
+  const [stage, setStage] = useState(s?.stage)
+  const [meeting, setMeeting] = useState(false)
+  const [meetingForm, setMeetingForm] = useState({ date: '', time: '', attendees: '' })
+  const setMeet = (k) => (v) => setMeetingForm((f) => ({ ...f, [k]: v }))
   const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v }))
+
+  const advanceStage = () => {
+    const i = stageOpts.indexOf(stage)
+    if (i < 0 || i >= stageOpts.length - 1) {
+      pushNotification({ type: 'seeker', title: 'Already at final stage', text: `${s.company} is at ${stage} — the final stage.`, tone: 'orange', icon: 'Milestone' })
+      return
+    }
+    const next = stageOpts[i + 1]
+    setStage(next)
+    updateSeeker(id, { stage: next })
+    pushNotification({ type: 'seeker', title: 'Stage advanced', text: `${s.company} advanced to ${next}.`, tone: 'green', icon: 'Handshake' })
+  }
+  const submitMeeting = (e) => {
+    e.preventDefault()
+    setMeeting(false)
+    const when = [meetingForm.date, meetingForm.time].filter(Boolean).join(' ')
+    setMeetingForm({ date: '', time: '', attendees: '' })
+    pushNotification({ type: 'seeker', title: 'Meeting scheduled', text: `Meeting with ${s.company}${when ? ` on ${when}` : ''}.`, tone: 'blue', icon: 'CalendarDays' })
+  }
+  const downloadDoc = (doc) => {
+    pushNotification({ type: 'seeker', title: 'Download started', text: `Download started — ${doc.name}.`, tone: 'blue', icon: 'Download' })
+  }
+  const introduce = (m) => {
+    pushNotification({ type: 'seeker', title: 'Introduction sent', text: `Introduction sent between ${s.company} and ${m.investor}.`, tone: 'green', icon: 'Handshake' })
+  }
 
   const openEdit = () => {
     setForm({
@@ -78,14 +107,14 @@ export default function SeekerDetail() {
                 <span>{s.id}</span>
                 <span className="flex items-center gap-1"><Icon name="Factory" size={13} /> {s.industry}</span>
                 <span className="flex items-center gap-1"><Icon name="MapPin" size={13} /> {s.location}</span>
-                <span className="flex items-center gap-1"><Icon name="Milestone" size={13} /> {s.stage}</span>
+                <span className="flex items-center gap-1"><Icon name="Milestone" size={13} /> {stage}</span>
               </div>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <button className="btn-ghost btn-sm" onClick={openEdit}><Icon name="Pencil" size={14} /> Edit</button>
             <button className="btn-ghost btn-sm text-brand-red hover:bg-brand-red/10" onClick={() => setConfirm(true)}><Icon name="Trash2" size={14} /> Delete</button>
-            <button className="btn-gold btn-sm"><Icon name="Handshake" size={14} /> Advance Stage</button>
+            <button className="btn-gold btn-sm" onClick={advanceStage}><Icon name="Handshake" size={14} /> Advance Stage</button>
           </div>
         </div>
       </Card>
@@ -112,7 +141,7 @@ export default function SeekerDetail() {
                     <Field label="Founded" value={s.founded} />
                     <Field label="Employees" value={s.employees} />
                     <Field label="Latest Revenue" value={s.revenue} />
-                    <Field label="Funding Stage" value={s.stage} />
+                    <Field label="Funding Stage" value={stage} />
                     <Field label="Valuation" value={s.valuation} accent />
                     <div className="sm:col-span-2"><Field label="Use of Funds" value={s.useOfFunds} /></div>
                   </div>
@@ -131,7 +160,7 @@ export default function SeekerDetail() {
                       <div className="flex items-center gap-2 text-slate-300"><Icon name="Mail" size={14} className="text-slate-500" /> {s.email}</div>
                       <div className="flex items-center gap-2 text-slate-300"><Icon name="Phone" size={14} className="text-slate-500" /> {s.phone}</div>
                     </div>
-                    <button className="btn-ghost btn-sm mt-4 w-full">Schedule Meeting</button>
+                    <button className="btn-ghost btn-sm mt-4 w-full" onClick={() => { setMeetingForm({ date: '', time: '', attendees: '' }); setMeeting(true) }}>Schedule Meeting</button>
                   </div>
                 </Card>
               </div>
@@ -172,7 +201,7 @@ export default function SeekerDetail() {
                     return <span className="flex items-center gap-2.5 font-medium text-slate-100"><Icon name="FileText" size={16} className="text-brand-purple" /> {row.name}</span>
                   if (key === 'status') return <Badge tone={docTone[row.status] || 'slate'}>{row.status}</Badge>
                   if (key === 'actions')
-                    return <button className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white"><Icon name="Download" size={15} /></button>
+                    return <button onClick={() => downloadDoc(row)} className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white"><Icon name="Download" size={15} /></button>
                   return row[key]
                 }}
               />
@@ -228,7 +257,7 @@ export default function SeekerDetail() {
                       <div className="text-xs text-slate-500">Match</div>
                       <div className={`text-lg font-bold ${m.score >= 85 ? 'text-brand-green' : 'text-gold-300'}`}>{m.score}%</div>
                     </div>
-                    <button className="btn-gold btn-sm">Introduce</button>
+                    <button className="btn-gold btn-sm" onClick={() => introduce(m)}>Introduce</button>
                   </div>
                 </Card>
               ))}
@@ -238,6 +267,28 @@ export default function SeekerDetail() {
           )
         }}
       </Tabs>
+
+      <Modal
+        open={meeting}
+        onClose={() => setMeeting(false)}
+        title="Schedule Meeting"
+        subtitle={s.company}
+        icon="CalendarDays"
+        footer={
+          <>
+            <button className="btn-ghost btn-sm" onClick={() => setMeeting(false)}>Cancel</button>
+            <button className="btn-gold btn-sm" onClick={submitMeeting}>Schedule</button>
+          </>
+        }
+      >
+        <form onSubmit={submitMeeting}>
+          <FormGrid>
+            <TextField label="Date" value={meetingForm.date} onChange={setMeet('date')} type="date" />
+            <TextField label="Time" value={meetingForm.time} onChange={setMeet('time')} type="time" />
+            <TextField label="Attendees" value={meetingForm.attendees} onChange={setMeet('attendees')} placeholder="e.g. Anita Rao, Founder" full />
+          </FormGrid>
+        </form>
+      </Modal>
 
       {form && (
         <Modal

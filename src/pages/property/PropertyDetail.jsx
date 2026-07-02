@@ -22,7 +22,19 @@ export default function PropertyDetail() {
   const [edit, setEdit] = useState(false)
   const [confirm, setConfirm] = useState(false)
   const [form, setForm] = useState(null)
+  const [listOpen, setListOpen] = useState(false)
+  const [listPrice, setListPrice] = useState('')
   const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v }))
+
+  const uploadMedia = () => {
+    pushNotification({ type: 'property', title: 'Upload started', text: `Media upload started for ${p?.name}.`, tone: 'blue', icon: 'UploadCloud' })
+  }
+  const openList = () => { setListPrice(p?.expected || ''); setListOpen(true) }
+  const listForSale = (e) => {
+    e?.preventDefault?.()
+    setListOpen(false)
+    pushNotification({ type: 'property', title: 'Listed for sale', text: `${p?.name} listed at ${listPrice.trim() || 'market price'}.`, tone: 'gold', icon: 'TrendingUp' })
+  }
 
   const openEdit = () => {
     setForm({
@@ -78,7 +90,7 @@ export default function PropertyDetail() {
           <div className="flex flex-wrap gap-2">
             <button className="btn-ghost btn-sm" onClick={openEdit}><Icon name="Pencil" size={14} /> Edit</button>
             <button className="btn-ghost btn-sm text-brand-red hover:bg-brand-red/10" onClick={() => setConfirm(true)}><Icon name="Trash2" size={14} /> Delete</button>
-            <button className="btn-gold btn-sm"><Icon name="TrendingUp" size={14} /> List for Sale</button>
+            <button className="btn-gold btn-sm" onClick={openList}><Icon name="TrendingUp" size={14} /> List for Sale</button>
           </div>
         </div>
       </Card>
@@ -118,7 +130,7 @@ export default function PropertyDetail() {
                       </div>
                     ))}
                   </div>
-                  <div className="px-5 pb-5"><button className="btn-ghost btn-sm w-full"><Icon name="Upload" size={14} /> Upload Media</button></div>
+                  <div className="px-5 pb-5"><button className="btn-ghost btn-sm w-full" onClick={uploadMedia}><Icon name="Upload" size={14} /> Upload Media</button></div>
                 </Card>
               </div>
             )
@@ -210,7 +222,7 @@ export default function PropertyDetail() {
                     return <span className="flex items-center gap-2.5 font-medium text-slate-100"><Icon name="FileText" size={16} className="text-brand-blue" /> {row.name}</span>
                   if (key === 'status') return <Badge tone={docTone[row.status] || 'slate'}>{row.status}</Badge>
                   if (key === 'actions')
-                    return <button className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white"><Icon name="Download" size={15} /></button>
+                    return <button onClick={() => pushNotification({ type: 'property', title: 'Download started', text: `Downloading ${row.name}.`, tone: 'blue', icon: 'Download' })} className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white"><Icon name="Download" size={15} /></button>
                   return row[key]
                 }}
               />
@@ -269,6 +281,27 @@ export default function PropertyDetail() {
           </form>
         </Modal>
       )}
+
+      <Modal
+        open={listOpen}
+        onClose={() => setListOpen(false)}
+        title="List for Sale"
+        subtitle={p.name}
+        icon="TrendingUp"
+        size="sm"
+        footer={
+          <>
+            <button className="btn-ghost btn-sm" onClick={() => setListOpen(false)}>Cancel</button>
+            <button className="btn-gold btn-sm" onClick={listForSale}>List for Sale</button>
+          </>
+        }
+      >
+        <form onSubmit={listForSale}>
+          <FormGrid>
+            <TextField label="Listing Price" value={listPrice} onChange={setListPrice} placeholder="e.g. ₹2.50 Cr" full />
+          </FormGrid>
+        </form>
+      </Modal>
 
       <ConfirmDialog
         open={confirm}
