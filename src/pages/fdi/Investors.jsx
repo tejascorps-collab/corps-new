@@ -64,18 +64,22 @@ export default function Investors() {
     setModal(true)
   }
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault()
     if (!form.name.trim()) return
-    if (editingId) {
-      updateInvestor(editingId, { ...form, industries: form.industries.split(',').map((s) => s.trim()).filter(Boolean) })
-    } else {
-      const item = addInvestor(form)
-      pushNotification({ type: 'investor', title: 'Investor registered', text: `${item.name} added (${item.id}).`, tone: 'green', icon: 'UserPlus', to: `/investors/${item.id}` })
+    try {
+      if (editingId) {
+        await updateInvestor(editingId, { ...form, industries: form.industries.split(',').map((s) => s.trim()).filter(Boolean) })
+      } else {
+        const item = await addInvestor(form)
+        pushNotification({ type: 'investor', title: 'Investor registered', text: `${item.name} added (${item.id}).`, tone: 'green', icon: 'UserPlus', to: `/investors/${item.id}` })
+      }
+      setModal(false)
+      setForm(empty)
+      setEditingId(null)
+    } catch {
+      pushNotification({ type: 'investor', title: 'Save failed', text: 'Could not save investor. Please try again.', tone: 'red', icon: 'AlertTriangle' })
     }
-    setModal(false)
-    setForm(empty)
-    setEditingId(null)
   }
 
   const confirmDelete = () => {

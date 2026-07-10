@@ -50,18 +50,22 @@ export default function Properties() {
     setModal(true)
   }
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault()
     if (!form.name.trim()) return
-    if (editingId) {
-      updateProperty(editingId, form)
-    } else {
-      const item = addProperty(form)
-      pushNotification({ type: 'property', title: 'Property added', text: `${item.name} added (${item.id}).`, tone: 'gold', icon: 'Building2', to: `/properties/${item.id}` })
+    try {
+      if (editingId) {
+        await updateProperty(editingId, form)
+      } else {
+        const item = await addProperty(form)
+        pushNotification({ type: 'property', title: 'Property added', text: `${item.name} added (${item.id}).`, tone: 'gold', icon: 'Building2', to: `/properties/${item.id}` })
+      }
+      setModal(false)
+      setForm(empty)
+      setEditingId(null)
+    } catch {
+      pushNotification({ type: 'property', title: 'Save failed', text: 'Could not save property. Please try again.', tone: 'red', icon: 'AlertTriangle' })
     }
-    setModal(false)
-    setForm(empty)
-    setEditingId(null)
   }
 
   const confirmDelete = () => {

@@ -1,28 +1,45 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
 import { seedNotifications, demoPushes } from '../data/mockData'
-import { authenticate, findUserById } from '../data/users'
+import { api, setToken, getToken, setUnauthorizedHandler } from '../lib/api'
 
 const AppContext = createContext(null)
 export const useApp = () => useContext(AppContext)
 
 export function AppProvider({ children }) {
-  // ---------- Auth ----------
-  // Rehydrate the signed-in user from the persisted id (if still valid).
-  const [currentUser, setCurrentUser] = useState(() => findUserById(localStorage.getItem('fdi_user')))
+  // ---------- Auth (real API + JWT) ----------
+  const [currentUser, setCurrentUser] = useState(null)
+  const [authLoading, setAuthLoading] = useState(!!getToken())
   const authed = !!currentUser
 
+  // On load, restore the session from a stored token (if still valid).
   useEffect(() => {
-    if (currentUser) localStorage.setItem('fdi_user', currentUser.id)
-    else localStorage.removeItem('fdi_user')
-  }, [currentUser])
-
-  const login = useCallback(({ username, password }) => {
-    const user = authenticate(username, password)
-    if (user) setCurrentUser(user)
-    return !!user
+    if (!getToken()) { setAuthLoading(false); return }
+    let alive = true
+    api.get('/auth/me')
+      .then(({ user }) => { if (alive) setCurrentUser(user) })
+      .catch(() => { if (alive) setToken(null) })
+      .finally(() => { if (alive) setAuthLoading(false) })
+    return () => { alive = false }
   }, [])
 
-  const logout = useCallback(() => setCurrentUser(null), [])
+  const login = useCallback(async ({ username, password }) => {
+    try {
+      const { token, user } = await api.post('/auth/login', { username, password })
+      setToken(token)
+      setCurrentUser(user)
+      return true
+    } catch {
+      return false
+    }
+  }, [])
+
+  const logout = useCallback(() => {
+    setToken(null)
+    setCurrentUser(null)
+  }, [])
+
+  // A 401 from any request means the session expired — drop it.
+  useEffect(() => { setUnauthorizedHandler(() => setCurrentUser(null)) }, [])
 
   const isSuperAdmin = currentUser?.role === 'super_admin'
 
@@ -132,6 +149,7 @@ export function AppProvider({ children }) {
   const value = {
     // auth
     authed,
+    authLoading,
     currentUser,
     isSuperAdmin,
     login,

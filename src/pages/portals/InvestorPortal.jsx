@@ -43,12 +43,16 @@ export default function InvestorPortal() {
     pushNotification({ type: 'investor', title: 'Request submitted', text: `${item.type}: ${item.detail}`, tone: 'blue', icon: 'Inbox' })
   }
 
-  const submitTicket = () => {
+  const submitTicket = async () => {
     if (!ticketForm.subject) return
-    const t = addTicket({ subject: ticketForm.subject, requester: p.name, category: 'Investor', priority: ticketForm.priority })
-    setTicketOpen(false)
-    setTicketForm({ subject: '', priority: 'Medium', detail: '' })
-    pushNotification({ type: 'support', title: 'Support ticket raised', text: `${t.id}: ${t.subject}`, tone: 'red', icon: 'LifeBuoy', to: '/support' })
+    try {
+      const t = await addTicket({ subject: ticketForm.subject, requester: p.name, category: 'Investor', priority: ticketForm.priority })
+      setTicketOpen(false)
+      setTicketForm({ subject: '', priority: 'Medium', detail: '' })
+      pushNotification({ type: 'support', title: 'Support ticket raised', text: `${t.id}: ${t.subject}`, tone: 'red', icon: 'LifeBuoy', to: '/support' })
+    } catch {
+      pushNotification({ type: 'support', title: 'Failed', text: 'Could not raise ticket. Please try again.', tone: 'red', icon: 'LifeBuoy' })
+    }
   }
 
   const confirmInterest = () => {

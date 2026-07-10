@@ -19,17 +19,14 @@ export default function Login() {
   // Already signed in → bounce to the app.
   if (authed) return <Navigate to={from} replace />
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault()
     setError('')
     setBusy(true)
-    // Simulate a brief auth round-trip.
-    setTimeout(() => {
-      const ok = login({ username, password })
-      setBusy(false)
-      if (ok) nav(from, { replace: true })
-      else setError('Invalid email or password. Please try again.')
-    }, 500)
+    const ok = await login({ username, password })
+    setBusy(false)
+    if (ok) nav(from, { replace: true })
+    else setError('Invalid email or password. Please try again.')
   }
 
   return (

@@ -62,18 +62,22 @@ export default function InvestmentSeekers() {
     setModal(true)
   }
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault()
     if (!form.company.trim()) return
-    if (editingId) {
-      updateSeeker(editingId, form)
-    } else {
-      const item = addSeeker(form)
-      pushNotification({ type: 'seeker', title: 'Seeker added', text: `${item.company} added (${item.id}).`, tone: 'purple', icon: 'Building', to: `/seekers/${item.id}` })
+    try {
+      if (editingId) {
+        await updateSeeker(editingId, form)
+      } else {
+        const item = await addSeeker(form)
+        pushNotification({ type: 'seeker', title: 'Seeker added', text: `${item.company} added (${item.id}).`, tone: 'purple', icon: 'Building', to: `/seekers/${item.id}` })
+      }
+      setModal(false)
+      setForm(empty)
+      setEditingId(null)
+    } catch {
+      pushNotification({ type: 'seeker', title: 'Save failed', text: 'Could not save seeker. Please try again.', tone: 'red', icon: 'AlertTriangle' })
     }
-    setModal(false)
-    setForm(empty)
-    setEditingId(null)
   }
 
   const confirmDelete = () => {

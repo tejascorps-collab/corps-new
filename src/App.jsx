@@ -5,9 +5,18 @@ import Login from './pages/Login'
 import { useApp } from './context/AppContext'
 
 // Gate that redirects unauthenticated users to /login, preserving where they were headed.
+// While the session is being restored from a stored token, show nothing (avoids a
+// flash of the login page on refresh).
 function RequireAuth({ children }) {
-  const { authed } = useApp()
+  const { authed, authLoading } = useApp()
   const location = useLocation()
+  if (authLoading) {
+    return (
+      <div className="grid h-screen place-items-center bg-ink-950">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-gold-400" />
+      </div>
+    )
+  }
   if (!authed) return <Navigate to="/login" replace state={{ from: location }} />
   return children
 }

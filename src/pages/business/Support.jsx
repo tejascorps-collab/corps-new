@@ -18,14 +18,18 @@ export default function Support() {
   const [toDelete, setToDelete] = useState(null)
   const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v }))
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault()
     if (!form.subject.trim()) return
-    const item = addTicket(form)
-    setModal(false)
-    setForm(emptyTicket)
-    setTab('tickets')
-    pushNotification({ type: 'support', title: 'Ticket created', text: `${item.id}: ${item.subject}`, tone: 'red', icon: 'LifeBuoy', to: '/support' })
+    try {
+      const item = await addTicket(form)
+      setModal(false)
+      setForm(emptyTicket)
+      setTab('tickets')
+      pushNotification({ type: 'support', title: 'Ticket created', text: `${item.id}: ${item.subject}`, tone: 'red', icon: 'LifeBuoy', to: '/support' })
+    } catch {
+      pushNotification({ type: 'support', title: 'Failed', text: 'Could not create ticket. Please try again.', tone: 'red', icon: 'AlertTriangle' })
+    }
   }
 
   return (

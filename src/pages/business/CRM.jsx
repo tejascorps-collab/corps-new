@@ -4,8 +4,9 @@ import { PageHeader, Card, Badge, StatCard, Avatar, initials, Icon } from '../..
 import { HBarChart } from '../../components/charts/Charts'
 import { Modal, FormGrid, TextField, SelectField } from '../../components/ui/Modal'
 import { useApp } from '../../context/AppContext'
+import { useData } from '../../context/DataContext'
 import { useTelephony } from '../../context/TelephonyContext'
-import { leads as seedLeads, crmPipeline } from '../../data/mockData'
+import { crmPipeline } from '../../data/mockData'
 
 const stages = ['New', 'Contacted', 'Qualified', 'Proposal', 'Negotiation']
 const channels = [
@@ -17,29 +18,31 @@ const channels = [
 
 export default function CRM() {
   const { pushNotification } = useApp()
+  const { leads, addLead } = useData()
   const { placeCall, onCall } = useTelephony()
   const nav = useNavigate()
-  const [leads, setLeads] = useState(seedLeads)
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({ name: '', company: '', type: 'Investor', stage: 'New', value: '', phone: '' })
 
-  const submit = () => {
+  const submit = async () => {
     if (!form.name.trim()) return
-    const lead = {
-      name: form.name.trim(),
-      company: form.company.trim() || '—',
-      type: form.type,
-      source: 'Manual',
-      stage: form.stage,
-      owner: 'Sales · You',
-      value: form.value.trim() || '—',
-      last: 'just now',
-      phone: form.phone.trim() || '—',
+    try {
+      const lead = await addLead({
+        name: form.name.trim(),
+        company: form.company.trim(),
+        type: form.type,
+        source: 'Manual',
+        stage: form.stage,
+        owner: 'Sales · You',
+        value: form.value.trim(),
+        phone: form.phone.trim(),
+      })
+      setOpen(false)
+      setForm({ name: '', company: '', type: 'Investor', stage: 'New', value: '', phone: '' })
+      pushNotification({ type: 'system', title: 'Lead added', text: `${lead.name} added to pipeline.`, tone: 'green', icon: 'Contact' })
+    } catch {
+      pushNotification({ type: 'system', title: 'Failed', text: 'Could not add lead. Please try again.', tone: 'red', icon: 'AlertTriangle' })
     }
-    setLeads((l) => [lead, ...l])
-    setOpen(false)
-    setForm({ name: '', company: '', type: 'Investor', stage: 'New', value: '', phone: '' })
-    pushNotification({ type: 'system', title: 'Lead added', text: `${lead.name} added to pipeline.`, tone: 'green', icon: 'Contact' })
   }
 
   // Click-to-call: dial the lead, then jump to the softphone so the agent sees the live call.

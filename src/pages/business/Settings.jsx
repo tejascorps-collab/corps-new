@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PageHeader, Card, CardHeader, Badge, Table, Avatar, initials, Icon } from '../../components/ui/Primitives'
 import { Modal, FormGrid, TextField, SelectField } from '../../components/ui/Modal'
 import { useApp } from '../../context/AppContext'
 import { useTelephony } from '../../context/TelephonyContext'
-import { teamMembers, roles } from '../../data/mockData'
+import { api } from '../../lib/api'
+import { roles } from '../../data/mockData'
 
 // Role → permission preview matrix
 const permissions = ['Dashboard', 'Investors', 'Properties', 'Fund Mgmt', 'Accounts', 'Settings']
@@ -48,6 +49,11 @@ export default function Settings() {
   const [inviteOpen, setInviteOpen] = useState(false)
   const [invite, setInvite] = useState({ email: '', role: roles[0] })
 
+  // Team members come from the DB now.
+  const [members, setMembers] = useState([])
+  const loadMembers = () => api.get('/users').then(setMembers).catch(() => {})
+  useEffect(() => { loadMembers() }, [])
+
   const openEditor = () => { setDraft(config); setOpen(true) }
   const saveConfig = () => {
     setConfig(draft)
@@ -56,10 +62,21 @@ export default function Settings() {
   }
 
   const openInvite = () => { setInvite({ email: '', role: roles[0] }); setInviteOpen(true) }
-  const sendInvite = () => {
+  const sendInvite = async () => {
     if (!invite.email.trim()) return
-    setInviteOpen(false)
-    pushNotification({ type: 'system', title: 'Invitation sent', text: `Invite sent to ${invite.email} (${invite.role}).`, tone: 'green', icon: 'UserPlus' })
+    try {
+      await api.post('/users', {
+        email: invite.email.trim(),
+        name: invite.email.trim().split('@')[0],
+        title: invite.role,
+        role: invite.role === 'Super Admin' ? 'super_admin' : 'admin',
+      })
+      setInviteOpen(false)
+      await loadMembers()
+      pushNotification({ type: 'system', title: 'User invited', text: `${invite.email} added as ${invite.role}.`, tone: 'green', icon: 'UserPlus' })
+    } catch (e) {
+      pushNotification({ type: 'system', title: 'Invite failed', text: e?.message || 'Could not invite user.', tone: 'red', icon: 'UserPlus' })
+    }
   }
 
   return (
@@ -71,32 +88,32 @@ export default function Settings() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
         <div className="space-y-6">
           <Card className="overflow-hidden">
-            <CardHeader title="Team Members" subtitle={`${teamMembers.length} users`} icon="Users" />
+            <CardHeader title="Team Members" subtitle={`${members.length} users`} icon="Users" />
             <div className="px-2 pb-2 pt-2">
               <Table
                 columns={[
                   { key: 'name', label: 'Member' },
-                  { key: 'role', label: 'Role' },
+                  { key: 'title', label: 'Role' },
                   { key: 'status', label: 'Status' },
-                  { key: 'last', label: 'Last Active' },
+                  { key: 'lastActive', label: 'Last Active' },
                   { key: 'actions', label: '', align: 'right' },
                 ]}
-                rows={teamMembers}
+                rows={members}
                 renderCell={(key, row) => {
                   if (key === 'name')
                     return (
                       <div className="flex items-center gap-3">
-                        <Avatar initials={initials(row.name)} tint="gold" />
+                        <Avatar initials={row.avatar || initials(row.name)} tint="gold" />
                         <div>
                           <div className="font-medium text-slate-100">{row.name}</div>
                           <div className="text-xs text-slate-500">{row.email}</div>
                         </div>
                       </div>
                     )
-                  if (key === 'role') return <Badge tone="slate">{row.role}</Badge>
+                  if (key === 'title') return <Badge tone={row.role === 'super_admin' ? 'gold' : 'slate'}>{row.title || (row.role === 'super_admin' ? 'Super Admin' : 'Administrator')}</Badge>
                   if (key === 'status') return <Badge>{row.status}</Badge>
                   if (key === 'actions')
-                    return <button onClick={() => pushNotification({ type: 'system', title: 'Member actions', text: `Manage ${row.name} (${row.role}).`, tone: 'blue', icon: 'MoreHorizontal' })} className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white"><Icon name="MoreHorizontal" size={16} /></button>
+                    return <button onClick={() => pushNotification({ type: 'system', title: 'Member actions', text: `Manage ${row.name} (${row.title || row.role}).`, tone: 'blue', icon: 'MoreHorizontal' })} className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white"><Icon name="MoreHorizontal" size={16} /></button>
                   return row[key]
                 }}
               />

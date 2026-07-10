@@ -1,0 +1,106 @@
+// FDI Prime — data model (SQLite via Prisma).
+// String IDs keep the human-friendly prefixed format (INV-1001, PROP-301, …).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("admin") // super_admin | admin (permission level)
+  title        String   @default("") // job title, e.g. "Investment Manager"
+  avatar       String   @default("")
+  status       String   @default("Active")
+  lastActive   String   @default("just now")
+  createdAt    DateTime @default(now())
+}
+
+model Investor {
+  id         String   @id
+  name       String
+  country    String   @default("India")
+  capacity   String   @default("")
+  industries String   @default("[]") // JSON array
+  kyc        String   @default("Pending")
+  invested   String   @default("")
+  roi        String   @default("")
+  rm         String   @default("Unassigned")
+  risk       String   @default("Moderate")
+  status     String   @default("Onboarding")
+  createdAt  DateTime @default(now())
+}
+
+model Seeker {
+  id        String   @id
+  company   String
+  cin       String   @default("")
+  industry  String   @default("General")
+  location  String   @default("India")
+  required  String   @default("")
+  equity    String   @default("")
+  roi       String   @default("")
+  stage     String   @default("Enquiry")
+  valuation String   @default("")
+  status    String   @default("Enquiry")
+  createdAt DateTime @default(now())
+}
+
+model Property {
+  id        String   @id
+  name      String
+  category  String   @default("Commercial")
+  location  String   @default("India")
+  purchase  String   @default("")
+  current   String   @default("")
+  expected  String   @default("")
+  rental    String   @default("")
+  roi       String   @default("")
+  legal     String   @default("Under Review")
+  status    String   @default("Acquired")
+  createdAt DateTime @default(now())
+}
+
+model Lead {
+  id        String   @id
+  name      String
+  company   String   @default("")
+  type      String   @default("Investor")
+  source    String   @default("Manual")
+  stage     String   @default("New")
+  owner     String   @default("")
+  value     String   @default("")
+  phone     String   @default("")
+  last      String   @default("just now")
+  createdAt DateTime @default(now())
+}
+
+model Ticket {
+  id        String   @id
+  subject   String
+  requester String   @default("")
+  category  String   @default("General")
+  priority  String   @default("Medium")
+  status    String   @default("Open")
+  agent     String   @default("Unassigned")
+  updated   String   @default("just now")
+  createdAt DateTime @default(now())
+}
+
+model CallLog {
+  id        String   @id
+  name      String
+  number    String
+  direction String   @default("outbound") // inbound | outbound
+  status    String   @default("Answered")
+  duration  Int      @default(0)
+  agent     String   @default("")
+  createdAt DateTime @default(now())
+}

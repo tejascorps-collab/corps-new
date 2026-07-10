@@ -1,11 +1,20 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
 import { seedCallLogs, telephonyProviders, sipTransports } from '../data/mockData'
+import { api } from '../lib/api'
 import { useApp } from './AppContext'
 
 const TelephonyContext = createContext(null)
 export const useTelephony = () => useContext(TelephonyContext)
 
 const STORAGE_KEY = 'fdi_telephony'
+
+// Format a stored createdAt into the short "MMM D · HH:MM" the call log shows.
+const fmtWhen = (iso) => {
+  try {
+    const d = new Date(iso)
+    return `${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} · ${d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}`
+  } catch { return 'recently' }
+}
 
 export const defaultConfig = {
   enabled: false,
@@ -78,6 +87,16 @@ export function TelephonyProvider({ children }) {
 
   useEffect(() => () => clearTimers(), [])
 
+  // Hydrate call history from the API once signed in.
+  useEffect(() => {
+    if (!currentUser) return
+    let alive = true
+    api.get('/call-logs')
+      .then((rows) => { if (alive && rows?.length) setCallLogs(rows.map((c) => ({ ...c, when: fmtWhen(c.createdAt) }))) })
+      .catch(() => { /* keep seed data */ })
+    return () => { alive = false }
+  }, [currentUser])
+
   const saveConfig = useCallback((next) => {
     setConfig(next)
     pushNotification({ type: 'system', title: 'Telephony updated', text: `${next.mode === 'sip' ? 'SIP' : next.api.provider} configuration saved.`, tone: 'green', icon: 'Phone' })
@@ -108,8 +127,13 @@ export function TelephonyProvider({ children }) {
   }, [config, pushNotification])
 
   const logCall = useCallback((entry) => {
-    const id = `CL-${++logId.current}`
-    setCallLogs((l) => [{ id, agent: currentUser?.name || 'You', when: 'just now', ...entry }, ...l])
+    // Show it immediately, then persist and swap in the saved record.
+    const tmpId = `CL-tmp-${++logId.current}`
+    const agent = currentUser?.name || 'You'
+    setCallLogs((l) => [{ id: tmpId, agent, when: 'just now', ...entry }, ...l])
+    api.post('/call-logs', { ...entry, agent })
+      .then((saved) => setCallLogs((l) => l.map((x) => (x.id === tmpId ? { ...saved, when: 'just now' } : x))))
+      .catch(() => { /* keep the optimistic entry */ })
   }, [currentUser])
 
   // Outbound call: dialing → ringing → connected. Mirrors a real softphone's states.
