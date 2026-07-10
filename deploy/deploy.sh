@@ -34,6 +34,24 @@ echo "==> Building..."
 npm run build
 
 echo "==> Build complete. Static files are in $APP_DIR/dist"
+
+# 3. Update the API service (server/). Never re-seeds — that would overwrite
+#    live data with mock defaults. First-time setup (.env, db push, seed,
+#    pm2 start) is done manually; this only syncs deps/schema and restarts.
+if [ -d "$APP_DIR/server" ]; then
+  echo "==> Updating API service..."
+  cd "$APP_DIR/server"
+  npm ci
+  npx prisma generate
+  npx prisma db push
+  if pm2 describe fdi-prime-api > /dev/null 2>&1; then
+    pm2 restart fdi-prime-api --update-env
+  else
+    echo "!! fdi-prime-api not registered in pm2 — run first-time setup (see server/.env.example)"
+  fi
+  cd "$APP_DIR"
+fi
+
 echo "==> Reloading nginx..."
 sudo nginx -t && sudo systemctl reload nginx
 
