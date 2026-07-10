@@ -21,20 +21,34 @@ export default function Settings() {
   const { pushNotification } = useApp()
   const nav = useNavigate()
   const {
-    config: tel, saveConfig: saveTelephony, registered, testConnection, providers, transports,
+    config: tel, saveConfig: saveTelephony, live, registered, testConnection, providers, transports,
   } = useTelephony()
 
-  // Telephony editor
+  // Telephony editor. Secrets are never sent to the client, so the form starts
+  // them blank — leaving one blank keeps the stored value on save.
   const [telOpen, setTelOpen] = useState(false)
-  const [telDraft, setTelDraft] = useState(tel)
+  const [telDraft, setTelDraft] = useState({})
+  const [saving, setSaving] = useState(false)
   const [testing, setTesting] = useState(false)
 
-  const openTelephony = () => { setTelDraft(tel); setTelOpen(true) }
-  const saveTel = () => { saveTelephony(telDraft); setTelOpen(false) }
+  const openTelephony = () => {
+    setTelDraft({
+      enabled: tel.enabled, mode: tel.mode, provider: tel.provider || 'Twilio', callerId: tel.callerId || '',
+      accountSid: '', apiKey: '', apiSecret: '', twimlAppSid: '',
+      sipServer: tel.sipServer || '', sipPort: tel.sipPort || '5061', sipTransport: tel.sipTransport || 'WSS',
+      sipUsername: tel.sipUsername || '', sipPassword: '',
+    })
+    setTelOpen(true)
+  }
+  const saveTel = async () => {
+    setSaving(true)
+    try { await saveTelephony(telDraft); setTelOpen(false) }
+    catch (e) { pushNotification({ type: 'system', title: 'Save failed', text: e?.message || 'Could not save telephony config.', tone: 'red', icon: 'PhoneOff' }) }
+    finally { setSaving(false) }
+  }
   const runTest = async () => { setTesting(true); await testConnection(); setTesting(false) }
 
-  const setSip = (k) => (v) => setTelDraft((d) => ({ ...d, sip: { ...d.sip, [k]: v } }))
-  const setApi = (k) => (v) => setTelDraft((d) => ({ ...d, api: { ...d.api, [k]: v } }))
+  const setTel = (k) => (v) => setTelDraft((d) => ({ ...d, [k]: v }))
 
   const [config, setConfig] = useState({
     company: 'FDI Prime Investments',
@@ -180,9 +194,9 @@ export default function Settings() {
           <Card className="card-pad">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-white">Telephony</h3>
-              <span className={`chip ring-1 ${tel.enabled ? (registered ? 'bg-brand-green/10 text-brand-green ring-brand-green/20' : 'bg-brand-orange/10 text-brand-orange ring-brand-orange/20') : 'bg-white/5 text-slate-400 ring-white/10'}`}>
-                <Icon name={tel.enabled && registered ? 'PhoneCall' : 'PhoneOff'} size={12} />
-                {!tel.enabled ? 'Disabled' : registered ? 'Registered' : 'Not registered'}
+              <span className={`chip ring-1 ${!tel.enabled ? 'bg-white/5 text-slate-400 ring-white/10' : live ? 'bg-brand-green/10 text-brand-green ring-brand-green/20' : 'bg-brand-orange/10 text-brand-orange ring-brand-orange/20'}`}>
+                <Icon name={live ? 'Radio' : tel.enabled ? 'Boxes' : 'PhoneOff'} size={12} />
+                {!tel.enabled ? 'Disabled' : live ? 'Live' : 'Simulation'}
               </span>
             </div>
 
@@ -190,17 +204,20 @@ export default function Settings() {
               {(tel.mode === 'sip'
                 ? [
                     ['Mode', 'SIP / PBX'],
-                    ['SIP Server', tel.sip.server || '—'],
-                    ['Port', tel.sip.port || '—'],
-                    ['Transport', tel.sip.transport],
-                    ['SIP User', tel.sip.username || '—'],
+                    ['SIP Server', tel.sipServer || '—'],
+                    ['Port', tel.sipPort || '—'],
+                    ['Transport', tel.sipTransport],
+                    ['SIP User', tel.sipUsername || '—'],
+                    ['Password', tel.hasSipPassword ? '••••••••' : 'Not set'],
                   ]
                 : [
                     ['Mode', 'Cloud API'],
-                    ['Provider', tel.api.provider],
-                    ['Caller ID', tel.api.callerId || '—'],
-                    ['Account SID', tel.api.accountSid ? `${tel.api.accountSid.slice(0, 6)}…` : 'Not set'],
-                    ['Auth Token', tel.api.authToken ? '••••••••' : 'Not set'],
+                    ['Provider', tel.provider],
+                    ['Caller ID', tel.callerId || '—'],
+                    ['Account SID', tel.accountSid || 'Not set'],
+                    ['API Key', tel.hasApiKey ? '•••••• ✓' : 'Not set'],
+                    ['API Secret', tel.hasApiSecret ? '••••••••' : 'Not set'],
+                    ['TwiML App', tel.twimlAppSid || 'Not set'],
                   ]
               ).map(([l, v]) => (
                 <div key={l} className="flex items-center justify-between gap-3 text-sm">
@@ -235,19 +252,19 @@ export default function Settings() {
       </Modal>
 
       {/* ---------------- Telephony configuration ---------------- */}
-      <Modal open={telOpen} onClose={() => setTelOpen(false)} title="Telephony Configuration" subtitle="Connect a SIP trunk or a cloud voice API" icon="Phone" size="lg"
-        footer={<><button className="btn-ghost btn-sm" onClick={() => setTelOpen(false)}>Cancel</button><button className="btn-gold btn-sm" onClick={saveTel}>Save</button></>}>
+      <Modal open={telOpen} onClose={() => setTelOpen(false)} title="Telephony Configuration" subtitle="Connect a Twilio voice API or a SIP trunk" icon="Phone" size="lg"
+        footer={<><button className="btn-ghost btn-sm" onClick={() => setTelOpen(false)}>Cancel</button><button className="btn-gold btn-sm" onClick={saveTel} disabled={saving}>{saving ? 'Saving…' : 'Save'}</button></>}>
         <FormGrid>
           <SelectField
             label="Status"
             value={telDraft.enabled ? 'Enabled' : 'Disabled'}
-            onChange={(v) => setTelDraft((d) => ({ ...d, enabled: v === 'Enabled' }))}
+            onChange={(v) => setTel('enabled')(v === 'Enabled')}
             options={['Enabled', 'Disabled']}
           />
           <SelectField
             label="Integration Mode"
             value={telDraft.mode === 'sip' ? 'SIP / PBX' : 'Cloud API'}
-            onChange={(v) => setTelDraft((d) => ({ ...d, mode: v === 'SIP / PBX' ? 'sip' : 'api' }))}
+            onChange={(v) => setTel('mode')(v === 'SIP / PBX' ? 'sip' : 'api')}
             options={['SIP / PBX', 'Cloud API']}
           />
         </FormGrid>
@@ -256,30 +273,33 @@ export default function Settings() {
           <div className="mt-5">
             <div className="section-title mb-3">SIP Registration</div>
             <FormGrid>
-              <TextField label="SIP Server / Domain" value={telDraft.sip.server} onChange={setSip('server')} placeholder="pbx.thecorps.in" required />
-              <TextField label="Port" value={telDraft.sip.port} onChange={setSip('port')} placeholder="5061" />
-              <SelectField label="Transport" value={telDraft.sip.transport} onChange={setSip('transport')} options={transports} />
-              <TextField label="SIP Username / Extension" value={telDraft.sip.username} onChange={setSip('username')} placeholder="agent01" required />
-              <TextField label="SIP Password" type="password" value={telDraft.sip.password} onChange={setSip('password')} placeholder="••••••••" />
-              <TextField label="STUN / TURN Server" value={telDraft.sip.stun} onChange={setSip('stun')} placeholder="stun:stun.l.google.com:19302" />
+              <TextField label="SIP Server / Domain" value={telDraft.sipServer} onChange={setTel('sipServer')} placeholder="pbx.thecorps.in" required />
+              <TextField label="Port" value={telDraft.sipPort} onChange={setTel('sipPort')} placeholder="5061" />
+              <SelectField label="Transport" value={telDraft.sipTransport} onChange={setTel('sipTransport')} options={transports} />
+              <TextField label="SIP Username / Extension" value={telDraft.sipUsername} onChange={setTel('sipUsername')} placeholder="agent01" required />
+              <TextField label="SIP Password" type="password" value={telDraft.sipPassword} onChange={setTel('sipPassword')} placeholder={tel.hasSipPassword ? '•••••• (unchanged)' : '••••••••'} full />
             </FormGrid>
             <p className="mt-3 text-xs text-slate-500">
-              Browser softphones require a WebSocket transport (WSS) on the PBX. UDP/TCP apply to desk phones on the same trunk.
+              Browser softphones require a WebSocket transport (WSS) on the PBX. SIP-mode live calling uses SIP.js in the browser (planned); Twilio API mode is fully wired.
             </p>
           </div>
         ) : (
           <div className="mt-5">
-            <div className="section-title mb-3">Cloud Voice API</div>
+            <div className="section-title mb-3">Twilio Voice API</div>
             <FormGrid>
-              <SelectField label="Provider" value={telDraft.api.provider} onChange={setApi('provider')} options={providers} />
-              <TextField label="Caller ID" value={telDraft.api.callerId} onChange={setApi('callerId')} placeholder="+91 80 4718 0000" />
-              <TextField label="Account SID / API Key" value={telDraft.api.accountSid} onChange={setApi('accountSid')} placeholder="ACxxxxxxxx" required />
-              <TextField label="Auth Token" type="password" value={telDraft.api.authToken} onChange={setApi('authToken')} placeholder="••••••••" required />
-              <TextField label="Webhook URL" value={telDraft.api.webhook} onChange={setApi('webhook')} placeholder="https://…/api/telephony/webhook" full />
+              <SelectField label="Provider" value={telDraft.provider} onChange={setTel('provider')} options={providers} />
+              <TextField label="Caller ID (Twilio number)" value={telDraft.callerId} onChange={setTel('callerId')} placeholder="+14155551234" />
+              <TextField label="Account SID" value={telDraft.accountSid} onChange={setTel('accountSid')} placeholder={tel.accountSid || 'ACxxxxxxxx'} />
+              <TextField label="TwiML App SID" value={telDraft.twimlAppSid} onChange={setTel('twimlAppSid')} placeholder={tel.twimlAppSid || 'APxxxxxxxx'} />
+              <TextField label="API Key SID" value={telDraft.apiKey} onChange={setTel('apiKey')} placeholder={tel.hasApiKey ? '•••••• (unchanged)' : 'SKxxxxxxxx'} />
+              <TextField label="API Key Secret" type="password" value={telDraft.apiSecret} onChange={setTel('apiSecret')} placeholder={tel.hasApiSecret ? '•••••• (unchanged)' : '••••••••'} />
             </FormGrid>
-            <p className="mt-3 text-xs text-slate-500">
-              The provider posts call events (ringing, answered, hangup, recording) to this webhook. Credentials are stored in this browser only — move them to a backend before production.
-            </p>
+            <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.02] p-3.5 text-xs text-slate-400">
+              <div className="mb-1.5 font-semibold text-slate-300">In your Twilio console, point the TwiML App at:</div>
+              <div>Voice request URL → <code className="text-gold-300">https://admin.thecorps.in/api/telephony/voice</code></div>
+              <div>Status callback URL → <code className="text-gold-300">https://admin.thecorps.in/api/telephony/status</code></div>
+              <div className="mt-1.5">Credentials are stored securely on the server (never in the browser). Leave a secret blank to keep the saved value.</div>
+            </div>
           </div>
         )}
       </Modal>

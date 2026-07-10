@@ -102,5 +102,28 @@ model CallLog {
   status    String   @default("Answered")
   duration  Int      @default(0)
   agent     String   @default("")
+  callSid   String   @default("") // provider call id (Twilio), for de-dup
   createdAt DateTime @default(now())
+}
+
+// Single-row telephony configuration. Credentials live here (server-side),
+// NOT in the browser. id is always "default".
+model TelephonyConfig {
+  id           String   @id @default("default")
+  enabled      Boolean  @default(false)
+  mode         String   @default("api") // api | sip
+  provider     String   @default("Twilio")
+  // Twilio (API mode)
+  accountSid   String   @default("")
+  apiKey       String   @default("")
+  apiSecret    String   @default("")
+  twimlAppSid  String   @default("")
+  callerId     String   @default("")
+  // SIP mode
+  sipServer    String   @default("")
+  sipPort      String   @default("5061")
+  sipTransport String   @default("WSS")
+  sipUsername  String   @default("")
+  sipPassword  String   @default("")
+  updatedAt    DateTime @updatedAt
 }

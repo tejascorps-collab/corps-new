@@ -23,7 +23,7 @@ export default function Telephony() {
   const { pushNotification } = useApp()
   const nav = useNavigate()
   const {
-    config, registered, agentStatus, setAgentStatus,
+    config, registered, live, agentStatus, setAgentStatus,
     call, seconds, placeCall, hangup, toggleMute, toggleHold, transferCall,
     ringInbound, incoming, callLogs, onCall,
   } = useTelephony()
@@ -83,14 +83,18 @@ export default function Telephony() {
       { key: 'duration', label: 'Duration (s)' }, { key: 'agent', label: 'Agent' }, { key: 'when', label: 'When' },
     ])
 
-  const trunk = config.mode === 'sip' ? `SIP · ${config.sip.server}` : `${config.api.provider} API`
+  const trunk = config.mode === 'sip' ? `SIP · ${config.sipServer || 'PBX'}` : `${config.provider} API`
 
   return (
     <div>
       <PageHeader title="Telephony" subtitle="Softphone, click-to-call and call history for agents" icon="Headphones">
+        <span className={`chip ring-1 ${live ? 'bg-brand-green/10 text-brand-green ring-brand-green/20' : 'bg-white/5 text-slate-300 ring-white/10'}`}>
+          <Icon name={live ? 'Radio' : 'Boxes'} size={12} />
+          {live ? 'Live' : 'Simulation'}
+        </span>
         <span className={`chip ring-1 ${registered ? 'bg-brand-green/10 text-brand-green ring-brand-green/20' : 'bg-brand-red/10 text-brand-red ring-brand-red/20'}`}>
           <Icon name={registered ? 'PhoneCall' : 'PhoneOff'} size={12} />
-          {registered ? 'Registered' : 'Not registered'}
+          {registered ? (live ? 'Connected' : 'Ready') : (live ? 'Connecting…' : 'Not ready')}
         </span>
         <div className="relative">
           <select
@@ -102,7 +106,9 @@ export default function Telephony() {
           </select>
           <Icon name="ChevronDown" size={12} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-current" />
         </div>
-        <button className="btn-ghost btn-sm" onClick={simulateInbound} disabled={!config.enabled || onCall || !!incoming}><Icon name="PhoneIncoming" size={14} /> Simulate Inbound</button>
+        {!live && (
+          <button className="btn-ghost btn-sm" onClick={simulateInbound} disabled={!config.enabled || onCall || !!incoming}><Icon name="PhoneIncoming" size={14} /> Simulate Inbound</button>
+        )}
         <button className="btn-ghost btn-sm" onClick={() => nav('/settings')}><Icon name="Settings" size={14} /> Configure</button>
       </PageHeader>
 
