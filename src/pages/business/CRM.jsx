@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { PageHeader, Card, Badge, StatCard, Avatar, initials, Icon } from '../../components/ui/Primitives'
 import { HBarChart } from '../../components/charts/Charts'
 import { Modal, FormGrid, TextField, SelectField } from '../../components/ui/Modal'
 import { useApp } from '../../context/AppContext'
+import { useTelephony } from '../../context/TelephonyContext'
 import { leads as seedLeads, crmPipeline } from '../../data/mockData'
 
 const stages = ['New', 'Contacted', 'Qualified', 'Proposal', 'Negotiation']
@@ -15,9 +17,11 @@ const channels = [
 
 export default function CRM() {
   const { pushNotification } = useApp()
+  const { placeCall, onCall } = useTelephony()
+  const nav = useNavigate()
   const [leads, setLeads] = useState(seedLeads)
   const [open, setOpen] = useState(false)
-  const [form, setForm] = useState({ name: '', company: '', type: 'Investor', stage: 'New', value: '' })
+  const [form, setForm] = useState({ name: '', company: '', type: 'Investor', stage: 'New', value: '', phone: '' })
 
   const submit = () => {
     if (!form.name.trim()) return
@@ -30,11 +34,21 @@ export default function CRM() {
       owner: 'Sales · You',
       value: form.value.trim() || '—',
       last: 'just now',
+      phone: form.phone.trim() || '—',
     }
     setLeads((l) => [lead, ...l])
     setOpen(false)
-    setForm({ name: '', company: '', type: 'Investor', stage: 'New', value: '' })
+    setForm({ name: '', company: '', type: 'Investor', stage: 'New', value: '', phone: '' })
     pushNotification({ type: 'system', title: 'Lead added', text: `${lead.name} added to pipeline.`, tone: 'green', icon: 'Contact' })
+  }
+
+  // Click-to-call: dial the lead, then jump to the softphone so the agent sees the live call.
+  const callLead = (l) => {
+    if (!l.phone || l.phone === '—') {
+      pushNotification({ type: 'system', title: 'No phone number', text: `${l.name} has no number on file.`, tone: 'orange', icon: 'PhoneOff' })
+      return
+    }
+    if (placeCall(l.phone, l.name)) nav('/telephony')
   }
 
   return (
@@ -50,7 +64,8 @@ export default function CRM() {
           <TextField label="Company" value={form.company} onChange={(v) => setForm((f) => ({ ...f, company: v }))} placeholder="Company" />
           <SelectField label="Type" value={form.type} onChange={(v) => setForm((f) => ({ ...f, type: v }))} options={['Investor', 'Seeker']} />
           <SelectField label="Stage" value={form.stage} onChange={(v) => setForm((f) => ({ ...f, stage: v }))} options={stages} />
-          <TextField label="Value" value={form.value} onChange={(v) => setForm((f) => ({ ...f, value: v }))} placeholder="₹5 Cr" full />
+          <TextField label="Phone" value={form.phone} onChange={(v) => setForm((f) => ({ ...f, phone: v }))} placeholder="+91 98765 43210" />
+          <TextField label="Value" value={form.value} onChange={(v) => setForm((f) => ({ ...f, value: v }))} placeholder="₹5 Cr" />
         </FormGrid>
       </Modal>
 
@@ -112,12 +127,15 @@ export default function CRM() {
       </div>
 
       <Card className="overflow-hidden">
-        <div className="px-5 pt-5 text-sm font-semibold text-white">All Leads</div>
+        <div className="flex items-center justify-between px-5 pt-5">
+          <span className="text-sm font-semibold text-white">All Leads</span>
+          <button className="btn-ghost btn-sm" onClick={() => nav('/telephony')}><Icon name="Headphones" size={14} /> Softphone</button>
+        </div>
         <div className="overflow-x-auto px-2 pb-2 pt-2">
-          <table className="w-full min-w-[720px] text-left text-sm">
+          <table className="w-full min-w-[820px] text-left text-sm">
             <thead>
               <tr className="text-[11px] uppercase tracking-wide text-slate-500">
-                {['Lead', 'Type', 'Source', 'Stage', 'Owner', 'Value', 'Last Activity'].map((h) => (
+                {['Lead', 'Type', 'Phone', 'Stage', 'Owner', 'Value', 'Last Activity', ''].map((h) => (
                   <th key={h} className="px-3 py-2">{h}</th>
                 ))}
               </tr>
@@ -130,11 +148,22 @@ export default function CRM() {
                     <div className="text-xs text-slate-500">{l.company}</div>
                   </td>
                   <td className="px-3 py-3"><Badge tone={l.type === 'Investor' ? 'blue' : 'purple'}>{l.type}</Badge></td>
-                  <td className="px-3 py-3 text-slate-400">{l.source}</td>
+                  <td className="px-3 py-3 text-slate-400">{l.phone || '—'}</td>
                   <td className="px-3 py-3"><Badge tone="slate">{l.stage}</Badge></td>
                   <td className="px-3 py-3 text-slate-400">{l.owner}</td>
                   <td className="px-3 py-3 font-semibold text-gold-300">{l.value}</td>
                   <td className="px-3 py-3 text-slate-500">{l.last}</td>
+                  <td className="px-3 py-3 text-right">
+                    <button
+                      onClick={() => callLead(l)}
+                      disabled={onCall}
+                      title={`Call ${l.name}`}
+                      aria-label={`Call ${l.name}`}
+                      className="grid h-8 w-8 place-items-center rounded-lg bg-brand-green/10 text-brand-green ring-1 ring-brand-green/20 transition hover:bg-brand-green/20 disabled:opacity-40"
+                    >
+                      <Icon name="Phone" size={15} />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import { AppProvider } from './context/AppContext'
 import { DataProvider } from './context/DataContext'
+import { TelephonyProvider } from './context/TelephonyContext'
 import { registerSW } from './pwa'
 import './index.css'
 
@@ -14,7 +15,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <AppProvider>
         <DataProvider>
-          <App />
+          <TelephonyProvider>
+            <App />
+          </TelephonyProvider>
         </DataProvider>
       </AppProvider>
     </BrowserRouter>

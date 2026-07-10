@@ -254,11 +254,26 @@ export const intlProperties = [
 
 // ---------- CRM ----------
 export const leads = [
-  { name: 'Rajesh Kumar', company: 'RK Enterprises', type: 'Investor', source: 'Website', stage: 'New', owner: 'Sales · Anita', value: '₹5 Cr', last: '2h ago' },
-  { name: 'Global Ventures Ltd.', company: 'Global Ventures', type: 'Seeker', source: 'Referral', stage: 'Contacted', owner: 'Sales · Vikram', value: '₹20 Cr', last: '15m ago' },
-  { name: 'Fatima Al Sayed', company: 'Al Sayed Holdings', type: 'Investor', source: 'Event', stage: 'Qualified', owner: 'Sales · Anita', value: '₹35 Cr', last: '1d ago' },
-  { name: 'TechNova Pvt Ltd', company: 'TechNova', type: 'Seeker', source: 'LinkedIn', stage: 'Proposal', owner: 'Sales · Vikram', value: '₹10 Cr', last: '3h ago' },
-  { name: 'Michael Chen', company: 'Chen Capital', type: 'Investor', source: 'Website', stage: 'Negotiation', owner: 'Sales · Anita', value: '₹18 Cr', last: '5h ago' },
+  { name: 'Rajesh Kumar', company: 'RK Enterprises', type: 'Investor', source: 'Website', stage: 'New', owner: 'Sales · Anita', value: '₹5 Cr', last: '2h ago', phone: '+91 98200 11234' },
+  { name: 'Global Ventures Ltd.', company: 'Global Ventures', type: 'Seeker', source: 'Referral', stage: 'Contacted', owner: 'Sales · Vikram', value: '₹20 Cr', last: '15m ago', phone: '+91 99870 45521' },
+  { name: 'Fatima Al Sayed', company: 'Al Sayed Holdings', type: 'Investor', source: 'Event', stage: 'Qualified', owner: 'Sales · Anita', value: '₹35 Cr', last: '1d ago', phone: '+971 50 442 8890' },
+  { name: 'TechNova Pvt Ltd', company: 'TechNova', type: 'Seeker', source: 'LinkedIn', stage: 'Proposal', owner: 'Sales · Vikram', value: '₹10 Cr', last: '3h ago', phone: '+91 80456 77120' },
+  { name: 'Michael Chen', company: 'Chen Capital', type: 'Investor', source: 'Website', stage: 'Negotiation', owner: 'Sales · Anita', value: '₹18 Cr', last: '5h ago', phone: '+65 8123 4477' },
+]
+
+// ---------- Telephony ----------
+// Two integration modes: SIP registers a softphone straight against a PBX/trunk,
+// while API mode drives calls through a cloud provider's REST API + webhooks.
+export const telephonyProviders = ['Twilio', 'Exotel', 'Plivo', 'Knowlarity', 'Custom REST']
+export const sipTransports = ['UDP', 'TCP', 'TLS', 'WSS']
+export const agentStatuses = ['Available', 'On Call', 'Break', 'Offline']
+
+export const seedCallLogs = [
+  { id: 'CL-1041', name: 'Fatima Al Sayed', number: '+971 50 442 8890', direction: 'outbound', status: 'Answered', duration: 412, agent: 'Anita Rao', when: 'Today · 11:42' },
+  { id: 'CL-1040', name: 'Rajesh Kumar', number: '+91 98200 11234', direction: 'inbound', status: 'Answered', duration: 187, agent: 'Anita Rao', when: 'Today · 10:15' },
+  { id: 'CL-1039', name: 'TechNova Pvt Ltd', number: '+91 80456 77120', direction: 'outbound', status: 'Missed', duration: 0, agent: 'Vikram Shah', when: 'Today · 09:58' },
+  { id: 'CL-1038', name: 'Michael Chen', number: '+65 8123 4477', direction: 'inbound', status: 'Voicemail', duration: 34, agent: '—', when: 'Yesterday · 18:22' },
+  { id: 'CL-1037', name: 'Global Ventures Ltd.', number: '+91 99870 45521', direction: 'outbound', status: 'Answered', duration: 903, agent: 'Vikram Shah', when: 'Yesterday · 16:05' },
 ]
 
 export const crmPipeline = [

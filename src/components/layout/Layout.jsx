@@ -6,6 +6,7 @@ import BottomNav from './BottomNav'
 import InstallBanner from './InstallBanner'
 import ToastHost from '../notifications/ToastHost'
 import ChatWidget from '../support/ChatWidget'
+import CallBar from '../telephony/CallBar'
 import PageLoader from '../ui/PageLoader'
 import { workspaceForRoute } from '../../config/nav'
 import { useApp } from '../../context/AppContext'
@@ -38,6 +39,7 @@ export default function Layout() {
 
       {/* Global overlays */}
       <ToastHost />
+      <CallBar />
       <ChatWidget />
       <InstallBanner />
       <BottomNav onMore={() => setOpen(true)} />

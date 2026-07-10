@@ -4,7 +4,7 @@
 import {
   Activity, AlarmClock, AlertCircle, AlertTriangle, AlignLeft, ArrowRight, Award,
   BadgeIndianRupee, BarChart3, Bell, BellOff, BellRing, Boxes, Briefcase, Building,
-  Building2, CalendarClock, CalendarDays, Check, CheckCircle2, ChevronLeft, ChevronRight,
+  Building2, CalendarClock, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight,
   CircleDollarSign, Clock, Coins, Contact, Download, Eye, Factory, FileCheck2, FileClock,
   FileSignature, FileText, FileUp, Filter, Flag, FolderOpen, Gauge, GitCommitVertical,
   GitCompareArrows, Globe, Hammer, Handshake, History, Image, Images, IndianRupee, Inbox,
@@ -15,12 +15,14 @@ import {
   ShieldAlert, ShieldCheck, ShoppingCart, Smile, Sparkles, StickyNote, Table2, Tag, Target,
   ThumbsUp, Trash2, TrendingUp, Upload, UploadCloud, User, UserCircle, UserCog, UserPlus, UserRound,
   Users, Video, Wallet, Circle, ArrowDownRight, ArrowUpRight, FileCheck, MessageSquare,
+  PhoneCall, PhoneOff, PhoneIncoming, PhoneOutgoing, PhoneMissed, PhoneForwarded,
+  Mic, MicOff, Pause, Play, Voicemail, Headphones, Server, Radio, Delete,
 } from 'lucide-react'
 
 export const iconMap = {
   Activity, AlarmClock, AlertCircle, AlertTriangle, AlignLeft, ArrowRight, Award,
   BadgeIndianRupee, BarChart3, Bell, BellOff, BellRing, Boxes, Briefcase, Building,
-  Building2, CalendarClock, CalendarDays, Check, CheckCircle2, ChevronLeft, ChevronRight,
+  Building2, CalendarClock, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight,
   CircleDollarSign, Clock, Coins, Contact, Download, Eye, Factory, FileCheck2, FileClock,
   FileSignature, FileText, FileUp, Filter, Flag, FolderOpen, Gauge, GitCommitVertical,
   GitCompareArrows, Globe, Hammer, Handshake, History, Image, Images, IndianRupee, Inbox,
@@ -31,4 +33,6 @@ export const iconMap = {
   ShieldAlert, ShieldCheck, ShoppingCart, Smile, Sparkles, StickyNote, Table2, Tag, Target,
   ThumbsUp, Trash2, TrendingUp, Upload, UploadCloud, User, UserCircle, UserCog, UserPlus, UserRound,
   Users, Video, Wallet, Circle, ArrowDownRight, ArrowUpRight, FileCheck, MessageSquare,
+  PhoneCall, PhoneOff, PhoneIncoming, PhoneOutgoing, PhoneMissed, PhoneForwarded,
+  Mic, MicOff, Pause, Play, Voicemail, Headphones, Server, Radio, Delete,
 }

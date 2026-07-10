@@ -41,6 +41,7 @@ const sharedGroups = [
     title: 'Business Management',
     items: [
       { to: '/crm', label: 'CRM & Leads', icon: 'Contact' },
+      { to: '/telephony', label: 'Telephony', icon: 'Headphones' },
       { to: '/tasks', label: 'Tasks & Calendar', icon: 'CalendarDays' },
       { to: '/accounts', label: 'Accounts & Finance', icon: 'Landmark' },
       { to: '/reports', label: 'Reports & Analytics', icon: 'BarChart3' },

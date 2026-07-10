@@ -42,6 +42,7 @@ const InternationalProperty = lazy(() => import('./pages/property/InternationalP
 
 // Business
 const CRM = lazy(() => import('./pages/business/CRM'))
+const Telephony = lazy(() => import('./pages/business/Telephony'))
 const TasksCalendar = lazy(() => import('./pages/business/TasksCalendar'))
 const Accounts = lazy(() => import('./pages/business/Accounts'))
 const Reports = lazy(() => import('./pages/business/Reports'))
@@ -86,6 +87,7 @@ export default function App() {
         <Route path="international" element={<InternationalProperty />} />
 
         <Route path="crm" element={<CRM />} />
+        <Route path="telephony" element={<Telephony />} />
         <Route path="tasks" element={<TasksCalendar />} />
         <Route path="accounts" element={<Accounts />} />
         <Route path="reports" element={<Reports />} />

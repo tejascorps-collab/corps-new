@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { PageHeader, Card, CardHeader, Badge, Table, Avatar, initials, Icon } from '../../components/ui/Primitives'
 import { Modal, FormGrid, TextField, SelectField } from '../../components/ui/Modal'
 import { useApp } from '../../context/AppContext'
+import { useTelephony } from '../../context/TelephonyContext'
 import { teamMembers, roles } from '../../data/mockData'
 
 // Role → permission preview matrix
@@ -16,6 +18,23 @@ const matrix = {
 
 export default function Settings() {
   const { pushNotification } = useApp()
+  const nav = useNavigate()
+  const {
+    config: tel, saveConfig: saveTelephony, registered, testConnection, providers, transports,
+  } = useTelephony()
+
+  // Telephony editor
+  const [telOpen, setTelOpen] = useState(false)
+  const [telDraft, setTelDraft] = useState(tel)
+  const [testing, setTesting] = useState(false)
+
+  const openTelephony = () => { setTelDraft(tel); setTelOpen(true) }
+  const saveTel = () => { saveTelephony(telDraft); setTelOpen(false) }
+  const runTest = async () => { setTesting(true); await testConnection(); setTesting(false) }
+
+  const setSip = (k) => (v) => setTelDraft((d) => ({ ...d, sip: { ...d.sip, [k]: v } }))
+  const setApi = (k) => (v) => setTelDraft((d) => ({ ...d, api: { ...d.api, [k]: v } }))
+
   const [config, setConfig] = useState({
     company: 'FDI Prime Investments',
     currency: 'INR (₹)',
@@ -139,6 +158,51 @@ export default function Settings() {
             </div>
             <button className="btn-ghost btn-sm mt-4 w-full" onClick={openEditor}>Edit Configuration</button>
           </Card>
+
+          {/* ---------------- Telephony ---------------- */}
+          <Card className="card-pad">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-white">Telephony</h3>
+              <span className={`chip ring-1 ${tel.enabled ? (registered ? 'bg-brand-green/10 text-brand-green ring-brand-green/20' : 'bg-brand-orange/10 text-brand-orange ring-brand-orange/20') : 'bg-white/5 text-slate-400 ring-white/10'}`}>
+                <Icon name={tel.enabled && registered ? 'PhoneCall' : 'PhoneOff'} size={12} />
+                {!tel.enabled ? 'Disabled' : registered ? 'Registered' : 'Not registered'}
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {(tel.mode === 'sip'
+                ? [
+                    ['Mode', 'SIP / PBX'],
+                    ['SIP Server', tel.sip.server || '—'],
+                    ['Port', tel.sip.port || '—'],
+                    ['Transport', tel.sip.transport],
+                    ['SIP User', tel.sip.username || '—'],
+                  ]
+                : [
+                    ['Mode', 'Cloud API'],
+                    ['Provider', tel.api.provider],
+                    ['Caller ID', tel.api.callerId || '—'],
+                    ['Account SID', tel.api.accountSid ? `${tel.api.accountSid.slice(0, 6)}…` : 'Not set'],
+                    ['Auth Token', tel.api.authToken ? '••••••••' : 'Not set'],
+                  ]
+              ).map(([l, v]) => (
+                <div key={l} className="flex items-center justify-between gap-3 text-sm">
+                  <span className="shrink-0 text-slate-400">{l}</span>
+                  <span className="truncate font-medium text-slate-100">{v}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <button className="btn-ghost btn-sm" onClick={openTelephony}>Configure</button>
+              <button className="btn-gold btn-sm" onClick={runTest} disabled={testing}>
+                {testing ? 'Testing…' : 'Test Connection'}
+              </button>
+            </div>
+            <button className="btn-ghost btn-sm mt-2 w-full" onClick={() => nav('/telephony')}>
+              <Icon name="Headphones" size={14} /> Open Softphone
+            </button>
+          </Card>
         </div>
       </div>
 
@@ -151,6 +215,56 @@ export default function Settings() {
           <SelectField label="Fiscal Year" value={draft.fiscal} onChange={(v) => setDraft((d) => ({ ...d, fiscal: v }))} options={['Apr – Mar', 'Jan – Dec']} />
           <TextField label="GST Number" value={draft.gst} onChange={(v) => setDraft((d) => ({ ...d, gst: v }))} full />
         </FormGrid>
+      </Modal>
+
+      {/* ---------------- Telephony configuration ---------------- */}
+      <Modal open={telOpen} onClose={() => setTelOpen(false)} title="Telephony Configuration" subtitle="Connect a SIP trunk or a cloud voice API" icon="Phone" size="lg"
+        footer={<><button className="btn-ghost btn-sm" onClick={() => setTelOpen(false)}>Cancel</button><button className="btn-gold btn-sm" onClick={saveTel}>Save</button></>}>
+        <FormGrid>
+          <SelectField
+            label="Status"
+            value={telDraft.enabled ? 'Enabled' : 'Disabled'}
+            onChange={(v) => setTelDraft((d) => ({ ...d, enabled: v === 'Enabled' }))}
+            options={['Enabled', 'Disabled']}
+          />
+          <SelectField
+            label="Integration Mode"
+            value={telDraft.mode === 'sip' ? 'SIP / PBX' : 'Cloud API'}
+            onChange={(v) => setTelDraft((d) => ({ ...d, mode: v === 'SIP / PBX' ? 'sip' : 'api' }))}
+            options={['SIP / PBX', 'Cloud API']}
+          />
+        </FormGrid>
+
+        {telDraft.mode === 'sip' ? (
+          <div className="mt-5">
+            <div className="section-title mb-3">SIP Registration</div>
+            <FormGrid>
+              <TextField label="SIP Server / Domain" value={telDraft.sip.server} onChange={setSip('server')} placeholder="pbx.thecorps.in" required />
+              <TextField label="Port" value={telDraft.sip.port} onChange={setSip('port')} placeholder="5061" />
+              <SelectField label="Transport" value={telDraft.sip.transport} onChange={setSip('transport')} options={transports} />
+              <TextField label="SIP Username / Extension" value={telDraft.sip.username} onChange={setSip('username')} placeholder="agent01" required />
+              <TextField label="SIP Password" type="password" value={telDraft.sip.password} onChange={setSip('password')} placeholder="••••••••" />
+              <TextField label="STUN / TURN Server" value={telDraft.sip.stun} onChange={setSip('stun')} placeholder="stun:stun.l.google.com:19302" />
+            </FormGrid>
+            <p className="mt-3 text-xs text-slate-500">
+              Browser softphones require a WebSocket transport (WSS) on the PBX. UDP/TCP apply to desk phones on the same trunk.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-5">
+            <div className="section-title mb-3">Cloud Voice API</div>
+            <FormGrid>
+              <SelectField label="Provider" value={telDraft.api.provider} onChange={setApi('provider')} options={providers} />
+              <TextField label="Caller ID" value={telDraft.api.callerId} onChange={setApi('callerId')} placeholder="+91 80 4718 0000" />
+              <TextField label="Account SID / API Key" value={telDraft.api.accountSid} onChange={setApi('accountSid')} placeholder="ACxxxxxxxx" required />
+              <TextField label="Auth Token" type="password" value={telDraft.api.authToken} onChange={setApi('authToken')} placeholder="••••••••" required />
+              <TextField label="Webhook URL" value={telDraft.api.webhook} onChange={setApi('webhook')} placeholder="https://…/api/telephony/webhook" full />
+            </FormGrid>
+            <p className="mt-3 text-xs text-slate-500">
+              The provider posts call events (ringing, answered, hangup, recording) to this webhook. Credentials are stored in this browser only — move them to a backend before production.
+            </p>
+          </div>
+        )}
       </Modal>
 
       <Modal open={inviteOpen} onClose={() => setInviteOpen(false)} title="Invite User" subtitle="Send an invitation to join the platform" icon="UserPlus"
