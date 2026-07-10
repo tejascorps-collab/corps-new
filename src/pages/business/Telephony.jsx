@@ -25,8 +25,19 @@ export default function Telephony() {
   const {
     config, registered, agentStatus, setAgentStatus,
     call, seconds, placeCall, hangup, toggleMute, toggleHold, transferCall,
-    callLogs, onCall,
+    ringInbound, incoming, callLogs, onCall,
   } = useTelephony()
+
+  // Demo helper: simulate an inbound call from a random CRM lead (no real PBX wired).
+  const simulateInbound = () => {
+    if (!registered) {
+      pushNotification({ type: 'system', title: 'Not registered', text: 'Register the trunk in Settings to receive calls.', tone: 'orange', icon: 'PhoneOff' })
+      return
+    }
+    const withPhone = leads.filter((l) => l.phone)
+    const l = withPhone[Math.floor(seconds + callLogs.length) % withPhone.length] || withPhone[0]
+    ringInbound(l.phone, l.name)
+  }
 
   const [number, setNumber] = useState('')
   const [xferOpen, setXferOpen] = useState(false)
@@ -91,6 +102,7 @@ export default function Telephony() {
           </select>
           <Icon name="ChevronDown" size={12} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-current" />
         </div>
+        <button className="btn-ghost btn-sm" onClick={simulateInbound} disabled={!config.enabled || onCall || !!incoming}><Icon name="PhoneIncoming" size={14} /> Simulate Inbound</button>
         <button className="btn-ghost btn-sm" onClick={() => nav('/settings')}><Icon name="Settings" size={14} /> Configure</button>
       </PageHeader>
 

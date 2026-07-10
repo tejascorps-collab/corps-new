@@ -54,10 +54,12 @@ export function TelephonyProvider({ children }) {
   const [registered, setRegistered] = useState(false)
   const [agentStatus, setAgentStatus] = useState('Available')
   const [call, setCall] = useState(idle)
+  const [incoming, setIncoming] = useState(null) // { number, name } while ringing
   const [seconds, setSeconds] = useState(0)
   const [callLogs, setCallLogs] = useState(seedCallLogs)
 
   const timers = useRef([])
+  const incomingRef = useRef(null)
   const logId = useRef(1041)
   const clearTimers = () => { timers.current.forEach(clearTimeout); timers.current = [] }
   const later = (fn, ms) => { timers.current.push(setTimeout(fn, ms)) }
@@ -174,11 +176,57 @@ export function TelephonyProvider({ children }) {
     hangup()
   }, [call, hangup, pushNotification])
 
+  // ---------- Inbound ----------
+  // A real trunk pushes ringing events; here we surface one for the agent to
+  // accept or decline. Auto-declines (busy) if a call is already in progress.
+  const ringInbound = useCallback((number, name = '') => {
+    if (!config.enabled || !registered) return false
+    if (call.status !== 'idle' || incoming) {
+      logCall({ name: name || 'Unknown', number, direction: 'inbound', status: 'Missed', duration: 0 })
+      pushNotification({ type: 'system', title: 'Missed call (busy)', text: `${name || number}`, tone: 'red', icon: 'PhoneMissed' })
+      return false
+    }
+    const inc = { number, name }
+    setIncoming(inc)
+    incomingRef.current = inc
+    pushNotification({ type: 'system', title: 'Incoming call', text: `${name || number} is calling…`, tone: 'gold', icon: 'PhoneIncoming' })
+    // Auto-miss if still ringing after 12s.
+    later(() => {
+      if (incomingRef.current === inc) {
+        incomingRef.current = null
+        setIncoming(null)
+        logCall({ name: name || 'Unknown', number, direction: 'inbound', status: 'Missed', duration: 0 })
+        pushNotification({ type: 'system', title: 'Missed call', text: `${name || number}`, tone: 'red', icon: 'PhoneMissed' })
+      }
+    }, 12000)
+    return true
+  }, [config.enabled, registered, call.status, incoming, logCall, pushNotification])
+
+  const acceptCall = useCallback(() => {
+    if (!incoming) return
+    clearTimers()
+    incomingRef.current = null
+    setIncoming(null)
+    setSeconds(0)
+    setAgentStatus('On Call')
+    setCall({ ...idle, status: 'active', number: incoming.number, name: incoming.name, direction: 'inbound' })
+  }, [incoming])
+
+  const declineCall = useCallback(() => {
+    if (!incoming) return
+    clearTimers()
+    incomingRef.current = null
+    setIncoming(null)
+    logCall({ name: incoming.name || 'Unknown', number: incoming.number, direction: 'inbound', status: 'Missed', duration: 0 })
+    pushNotification({ type: 'system', title: 'Call declined', text: `${incoming.name || incoming.number}`, tone: 'orange', icon: 'PhoneOff' })
+  }, [incoming, logCall, pushNotification])
+
   const value = {
     config, setConfig, saveConfig, defaultConfig,
     registered, testConnection,
     agentStatus, setAgentStatus,
     call, seconds, placeCall, hangup, toggleMute, toggleHold, transferCall,
+    incoming, ringInbound, acceptCall, declineCall,
     callLogs, logCall,
     providers: telephonyProviders, transports: sipTransports,
     onCall: call.status !== 'idle',
