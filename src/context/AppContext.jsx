@@ -38,6 +38,16 @@ export function AppProvider({ children }) {
     setCurrentUser(null)
   }, [])
 
+  // Change the signed-in user's password. Returns { ok } or { error }.
+  const changePassword = useCallback(async (currentPassword, newPassword) => {
+    try {
+      await api.post('/auth/change-password', { currentPassword, newPassword })
+      return { ok: true }
+    } catch (e) {
+      return { ok: false, error: e?.message || 'Could not change password' }
+    }
+  }, [])
+
   // A 401 from any request means the session expired — drop it.
   useEffect(() => { setUnauthorizedHandler(() => setCurrentUser(null)) }, [])
 
@@ -154,6 +164,7 @@ export function AppProvider({ children }) {
     isSuperAdmin,
     login,
     logout,
+    changePassword,
     role,
     setRole,
     // workspace

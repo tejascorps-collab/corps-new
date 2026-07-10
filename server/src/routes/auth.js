@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { prisma } from '../db.js'
-import { verifyPassword, signToken, publicUser, requireAuth } from '../auth.js'
+import { verifyPassword, hashPassword, signToken, publicUser, requireAuth } from '../auth.js'
 
 const r = Router()
 
@@ -23,6 +23,21 @@ r.get('/me', requireAuth, async (req, res) => {
   const user = await prisma.user.findUnique({ where: { id: req.auth.sub } })
   if (!user) return res.status(401).json({ error: 'Not found' })
   res.json({ user: publicUser(user) })
+})
+
+// POST /api/auth/change-password  { currentPassword, newPassword }
+r.post('/change-password', requireAuth, async (req, res) => {
+  const current = String(req.body?.currentPassword || '')
+  const next = String(req.body?.newPassword || '')
+  if (next.length < 8) return res.status(400).json({ error: 'New password must be at least 8 characters' })
+
+  const user = await prisma.user.findUnique({ where: { id: req.auth.sub } })
+  if (!user) return res.status(401).json({ error: 'Not found' })
+  if (!(await verifyPassword(current, user.passwordHash))) {
+    return res.status(400).json({ error: 'Current password is incorrect' })
+  }
+  await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(next) } })
+  res.json({ ok: true })
 })
 
 export default r

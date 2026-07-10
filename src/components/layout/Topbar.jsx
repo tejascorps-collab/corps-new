@@ -6,6 +6,7 @@ import { roleLabel } from '../../data/users'
 import { workspaces, workspaceByKey } from '../../config/nav'
 import { Icon } from '../ui/Primitives'
 import NotificationBell from '../notifications/NotificationBell'
+import ChangePasswordModal from '../account/ChangePasswordModal'
 import { useApp } from '../../context/AppContext'
 
 const roleOptions = [
@@ -28,6 +29,7 @@ export default function Topbar({ onMenu }) {
   const [open, setOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [wsOpen, setWsOpen] = useState(false)
+  const [pwOpen, setPwOpen] = useState(false)
   const boxRef = useRef(null)
   const menuRef = useRef(null)
   const wsRef = useRef(null)
@@ -206,6 +208,13 @@ export default function Topbar({ onMenu }) {
                   <span className="flex-1">Install App</span>
                 </button>
               )}
+              <button
+                onClick={() => { setMenuOpen(false); setPwOpen(true) }}
+                className="flex w-full items-center gap-3 border-t border-white/10 px-4 py-2.5 text-left text-sm text-slate-200 transition hover:bg-white/[0.04]"
+              >
+                <Icon name="ShieldCheck" size={16} className="text-slate-400" />
+                <span className="flex-1">Change Password</span>
+              </button>
               <div className="border-t border-white/10 p-1.5">
                 <button
                   onClick={() => { setMenuOpen(false); logout(); nav('/login') }}
@@ -217,6 +226,8 @@ export default function Topbar({ onMenu }) {
             </div>
           )}
         </div>
+
+        <ChangePasswordModal open={pwOpen} onClose={() => setPwOpen(false)} />
       </div>
     </header>
   )
