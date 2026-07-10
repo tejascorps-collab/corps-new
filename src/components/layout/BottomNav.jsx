@@ -3,14 +3,25 @@ import { useApp } from '../../context/AppContext'
 import { Icon } from '../ui/Primitives'
 
 // 5-tab sets per role. Last tab opens the full drawer.
-const tabSets = {
-  admin: [
+// Admin tabs follow the active workspace (FDI Support vs Property Trading).
+const adminTabs = {
+  fdi: [
     { to: '/', label: 'Home', icon: 'LayoutDashboard', exact: true },
     { to: '/investors', label: 'Investors', icon: 'Users' },
-    { to: '/properties', label: 'Property', icon: 'Building2' },
+    { to: '/projects', label: 'Projects', icon: 'Briefcase' },
     { to: '/notifications', label: 'Alerts', icon: 'Bell', badge: true },
     { more: true, label: 'More', icon: 'Menu' },
   ],
+  property: [
+    { to: '/', label: 'Home', icon: 'LayoutDashboard', exact: true },
+    { to: '/properties', label: 'Property', icon: 'Building2' },
+    { to: '/property-deals', label: 'Deals', icon: 'Handshake' },
+    { to: '/notifications', label: 'Alerts', icon: 'Bell', badge: true },
+    { more: true, label: 'More', icon: 'Menu' },
+  ],
+}
+
+const tabSets = {
   investor: [
     { to: '/portal/investor', label: 'Portfolio', icon: 'Briefcase' },
     { to: '/properties', label: 'Explore', icon: 'Building2' },
@@ -28,9 +39,9 @@ const tabSets = {
 }
 
 export default function BottomNav({ onMore }) {
-  const { role, unreadCount } = useApp()
+  const { role, unreadCount, workspace } = useApp()
   const nav = useNavigate()
-  const tabs = tabSets[role] || tabSets.admin
+  const tabs = role === 'admin' ? adminTabs[workspace] || adminTabs.fdi : tabSets[role] || adminTabs.fdi
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-ink-900/95 backdrop-blur-xl lg:hidden">

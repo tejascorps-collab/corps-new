@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Menu, Search, Globe, MessageSquare, ChevronDown, Check } from 'lucide-react'
 import { company, globalSearch } from '../../data/mockData'
 import { roleLabel } from '../../data/users'
+import { workspaces, workspaceByKey } from '../../config/nav'
 import { Icon } from '../ui/Primitives'
 import NotificationBell from '../notifications/NotificationBell'
 import { useApp } from '../../context/AppContext'
@@ -20,23 +21,36 @@ const typeTint = {
 
 export default function Topbar({ onMenu }) {
   const nav = useNavigate()
-  const { role, setRole, canInstall, installApp, logout, currentUser, pushNotification } = useApp()
+  const { role, setRole, canInstall, installApp, logout, currentUser, pushNotification, workspace, setWorkspace } = useApp()
   const user = currentUser || company.user
+  const ws = workspaceByKey(workspace)
   const [q, setQ] = useState('')
   const [open, setOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [wsOpen, setWsOpen] = useState(false)
   const boxRef = useRef(null)
   const menuRef = useRef(null)
+  const wsRef = useRef(null)
   const results = globalSearch(q)
 
   useEffect(() => {
     const onClick = (e) => {
       if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false)
       if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false)
+      if (wsRef.current && !wsRef.current.contains(e.target)) setWsOpen(false)
     }
     document.addEventListener('mousedown', onClick)
     return () => document.removeEventListener('mousedown', onClick)
   }, [])
+
+  // Switching workspace lands you on that workspace's dashboard.
+  const chooseWorkspace = (key) => {
+    setWsOpen(false)
+    if (key === workspace) return
+    setWorkspace(key)
+    setRole('admin')
+    nav('/')
+  }
 
   const chooseRole = (r) => {
     setRole(r)
@@ -53,6 +67,43 @@ export default function Topbar({ onMenu }) {
       <button onClick={onMenu} className="grid h-10 w-10 place-items-center rounded-xl text-slate-300 hover:bg-white/5 lg:hidden">
         <Menu size={20} />
       </button>
+
+      {/* Workspace switcher — FDI Support ⇄ Property Trading */}
+      <div ref={wsRef} className="relative shrink-0">
+        <button
+          onClick={() => setWsOpen((o) => !o)}
+          className="flex items-center gap-2 rounded-xl border border-gold-400/25 bg-gold-400/[0.07] py-2 pl-2.5 pr-2 text-left hover:bg-gold-400/[0.12] sm:pr-3"
+          title="Switch workspace"
+        >
+          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-gold-400/15 text-gold-300">
+            <Icon name={ws.icon} size={15} />
+          </span>
+          <span className="hidden leading-tight sm:block">
+            <span className="block text-[9px] uppercase tracking-wide text-slate-500">Workspace</span>
+            <span className="block text-[13px] font-semibold text-gold-200">{ws.label}</span>
+          </span>
+          <ChevronDown size={14} className="shrink-0 text-gold-400/70" />
+        </button>
+
+        {wsOpen && (
+          <div className="absolute left-0 top-full z-40 mt-2 w-60 overflow-hidden rounded-2xl border border-white/10 bg-ink-850 shadow-card">
+            <div className="border-b border-white/10 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              Switch Workspace
+            </div>
+            {workspaces.map((w) => (
+              <button
+                key={w.key}
+                onClick={() => chooseWorkspace(w.key)}
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition hover:bg-white/[0.04]"
+              >
+                <Icon name={w.icon} size={16} className={workspace === w.key ? 'text-gold-300' : 'text-slate-400'} />
+                <span className={`flex-1 text-sm ${workspace === w.key ? 'text-gold-200' : 'text-slate-200'}`}>{w.label}</span>
+                {workspace === w.key && <Check size={15} className="text-gold-300" />}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Search */}
       <div ref={boxRef} className="relative hidden flex-1 md:block md:max-w-xl">

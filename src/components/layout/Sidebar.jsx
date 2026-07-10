@@ -1,14 +1,20 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { navGroups } from '../../config/nav'
+import { getNavGroups, workspaceByKey } from '../../config/nav'
+import { useApp } from '../../context/AppContext'
 import { Icon } from '../ui/Primitives'
 import { X } from 'lucide-react'
 
 export default function Sidebar({ open, onClose }) {
   const nav = useNavigate()
+  const { workspace } = useApp()
+  const ws = workspaceByKey(workspace)
+  const groups = getNavGroups(workspace)
+
   const explore = () => {
     nav('/portal/investor')
     if (onClose) onClose()
   }
+
   return (
     <>
       {/* Mobile overlay */}
@@ -25,7 +31,7 @@ export default function Sidebar({ open, onClose }) {
             <img src="/logo.svg" alt="logo" className="h-9 w-9" />
             <div className="leading-tight">
               <div className="font-display text-lg font-bold text-white">FDI PRIME</div>
-              <div className="text-[9px] font-semibold uppercase tracking-[0.35em] text-gold-400">Investments</div>
+              <div className="text-[9px] font-semibold uppercase tracking-[0.35em] text-gold-400">{ws.tagline}</div>
             </div>
           </div>
           <button onClick={onClose} className="text-slate-400 lg:hidden">
@@ -33,9 +39,20 @@ export default function Sidebar({ open, onClose }) {
           </button>
         </div>
 
+        {/* Active workspace */}
+        <div className="mx-3 mb-3 flex items-center gap-2.5 rounded-xl border border-gold-400/20 bg-gold-400/[0.07] px-3 py-2.5">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gold-400/15 text-gold-300">
+            <Icon name={ws.icon} size={16} />
+          </span>
+          <div className="min-w-0 leading-tight">
+            <div className="text-[10px] uppercase tracking-wide text-slate-500">Workspace</div>
+            <div className="truncate text-sm font-semibold text-gold-200">{ws.label}</div>
+          </div>
+        </div>
+
         {/* Nav */}
         <nav className="flex-1 space-y-6 overflow-y-auto px-3 pb-6">
-          {navGroups.map((group, gi) => (
+          {groups.map((group, gi) => (
             <div key={gi}>
               {group.title && <div className="section-title mb-2 px-3">{group.title}</div>}
               <div className="space-y-0.5">

@@ -30,6 +30,12 @@ export function AppProvider({ children }) {
   const [role, setRole] = useState(() => localStorage.getItem('fdi_role') || 'admin')
   useEffect(() => localStorage.setItem('fdi_role', role), [role])
 
+  // ---------- Workspace (fdi | property) ----------
+  // The two business lines are separate workspaces: FDI Support and Property Trading.
+  // Business modules (CRM, accounts, reports, support, settings) and the portals are shared.
+  const [workspace, setWorkspace] = useState(() => localStorage.getItem('fdi_workspace') || 'fdi')
+  useEffect(() => localStorage.setItem('fdi_workspace', workspace), [workspace])
+
   // ---------- Notifications ----------
   const [notifications, setNotifications] = useState(seedNotifications)
   const [toasts, setToasts] = useState([])
@@ -132,6 +138,9 @@ export function AppProvider({ children }) {
     logout,
     role,
     setRole,
+    // workspace
+    workspace,
+    setWorkspace,
     notifications,
     unreadCount,
     markRead,
