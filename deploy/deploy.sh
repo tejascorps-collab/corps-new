@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 #
-# Deploy / update FDI Prime on the VPS for admin.thecorps.in
+# Deploy / update FDI Connect on the VPS for app.akontec.pro
 # Run this ON THE VPS over SSH. Re-run it any time to pull the latest code and rebuild.
 #
 #   bash deploy.sh
 #
 set -euo pipefail
 
-REPO="https://github.com/tejascorps-collab/corps-new.git"
-APP_DIR="/var/www/admin.thecorps.in"
+REPO="https://github.com/tejascorps-collab/fdi-connect.git"
+APP_DIR="/var/www/app.akontec.pro"
 
 echo "==> Deploying to $APP_DIR"
 
@@ -55,4 +55,4 @@ fi
 echo "==> Reloading nginx..."
 sudo nginx -t && sudo systemctl reload nginx
 
-echo "==> Done. Visit https://admin.thecorps.in"
+echo "==> Done. Visit https://app.akontec.pro"

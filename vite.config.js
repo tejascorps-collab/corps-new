@@ -6,6 +6,11 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    proxy: {
+      // Local dev: proxy the API to the FDI backend on :4100, mirroring how
+      // nginx proxies /api → the API service in production.
+      '/api': 'http://localhost:4100',
+    },
   },
   build: {
     chunkSizeWarningLimit: 900,

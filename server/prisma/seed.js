@@ -10,21 +10,40 @@ import {
 const initials = (name = '') =>
   name.split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase()
 
+// Resolve a login account's password from the environment. No weak defaults —
+// seeding fails loudly if the credentials aren't configured in server/.env.
+function passwordForRole(role) {
+  const pw = role === 'super_admin'
+    ? process.env.SEED_SUPERADMIN_PASSWORD
+    : process.env.SEED_ADMIN_PASSWORD
+  if (!pw) {
+    throw new Error(
+      `Missing seed password for role "${role}". Set SEED_SUPERADMIN_PASSWORD and ` +
+      `SEED_ADMIN_PASSWORD in server/.env (see server/.env.example).`
+    )
+  }
+  return pw
+}
+
 async function seedUsers() {
   const seen = new Set()
 
-  // 1) Real login accounts (hashed passwords).
+  // 1) Real login accounts. Passwords come from env and are (re)applied on every
+  //    seed — so a manual re-seed rotates them to the configured values.
   for (const u of LOGIN_ACCOUNTS) {
-    const email = u.email.toLowerCase()
+    const email = (u.role === 'super_admin' && process.env.SEED_SUPERADMIN_EMAIL
+      ? process.env.SEED_SUPERADMIN_EMAIL
+      : u.email).toLowerCase()
     seen.add(email)
+    const passwordHash = await hashPassword(passwordForRole(u.role))
     await prisma.user.upsert({
       where: { email },
-      update: { name: u.name, role: u.role, avatar: u.avatar },
+      update: { name: u.name, role: u.role, avatar: u.avatar, passwordHash },
       create: {
         id: u.id.replace('u-', 'USR-'),
         name: u.name,
         email,
-        passwordHash: await hashPassword(u.password),
+        passwordHash,
         role: u.role,
         title: u.role === 'super_admin' ? 'Super Admin' : 'Administrator',
         avatar: u.avatar,
@@ -34,8 +53,10 @@ async function seedUsers() {
     })
   }
 
-  // 2) Team members (job titles preserved; default password, change on first login).
-  const defaultPw = await hashPassword('welcome@123')
+  // 2) Team members (job titles preserved). Password is env-driven; falls back to
+  //    a placeholder only for local dev. Re-applied on seed like the accounts above.
+  const teamPw = process.env.SEED_TEAM_PASSWORD || 'change-me-team'
+  const defaultPw = await hashPassword(teamPw)
   let n = 1
   for (const m of teamMembers) {
     const email = m.email.toLowerCase()
@@ -43,7 +64,7 @@ async function seedUsers() {
     seen.add(email)
     await prisma.user.upsert({
       where: { email },
-      update: { name: m.name, title: m.role, status: m.status, lastActive: m.last },
+      update: { name: m.name, title: m.role, status: m.status, lastActive: m.last, passwordHash: defaultPw },
       create: {
         id: `USR-${100 + n++}`,
         name: m.name,

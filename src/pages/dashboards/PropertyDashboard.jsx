@@ -1,12 +1,13 @@
 import { Card, CardHeader, StatCard, Badge, Progress } from '../../components/ui/Primitives'
 import { DonutChart, HBarChart, CashflowChart } from '../../components/charts/Charts'
+import { funds, profitDistribution, intlProperties, cashflowSeries } from '../../data/mockData'
 import {
-  funds, propertiesOverview, profitDistribution, intlProperties,
-  propertyPerformance, cashflowSeries, recentInvestments,
-} from '../../data/mockData'
+  propertiesValue, propertiesInvested, propertyAverageRoi, parsePct, fmtCr, fmtCount,
+} from '../../lib/metrics'
 import { Crown, ChevronRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
+import { useData } from '../../context/DataContext'
 import { LinkAll, Legend, StatStrip, Hero } from './bits'
 
 const allocation = [
@@ -14,29 +15,52 @@ const allocation = [
   { name: 'Available Balance', value: 19, color: '#2ec4b6' },
 ]
 
-const propertyStats = [
-  { label: 'Properties Under Mgmt.', value: '32', delta: 11.2, up: true, icon: 'Building2', tint: 'orange' },
-  { label: 'Total Fund Pool', value: funds.totalPool, delta: 12.0, up: true, icon: 'PiggyBank', tint: 'gold' },
-  { label: 'Allocated', value: funds.allocated, delta: 9.0, up: true, icon: 'Send', tint: 'blue' },
-  { label: 'Balance Available', value: funds.balance, delta: 3.0, up: true, icon: 'Wallet', tint: 'teal' },
-  { label: 'Properties Sold (YTD)', value: '18', delta: 28.6, up: true, icon: 'Handshake', tint: 'green' },
-]
-
-const propertyFooterStats = [
-  { label: 'Total Properties', value: '32', delta: 14.2, icon: 'Building2' },
-  { label: 'Fund Pool', value: funds.totalPool, delta: 12.0, icon: 'PiggyBank' },
-  { label: 'Properties Sold', value: '18', delta: 28.6, icon: 'Handshake' },
-  { label: 'Average ROI', value: '19.6%', delta: 3.8, icon: 'Gauge' },
-  { label: 'Total Exits', value: '18', delta: 28.6, icon: 'LogOut' },
-  { label: 'Success Rate', value: '92%', delta: 5.4, icon: 'Award' },
-]
+// Rough completion for a property based on its lifecycle status.
+const PROP_PROGRESS = { Acquired: 40, 'In Progress': 55, 'Under Renovation': 55, Listed: 70, Rented: 85, Sold: 100 }
 
 export default function PropertyDashboard() {
   const { currentUser, pushNotification } = useApp()
+  const { properties } = useData()
   const nav = useNavigate()
   const firstName = (currentUser?.name || 'there').split(' ')[0]
-  const propertyDeals = recentInvestments.filter((r) => r.type === 'Property')
   const intlTotal = intlProperties.reduce((n, c) => n + c.properties, 0)
+
+  // ---- Live-derived metrics (from the DB-backed properties collection) ----
+  const bookValue = propertiesValue(properties)
+  const invested = propertiesInvested(properties)
+  const roi = propertyAverageRoi(properties)
+  const sold = properties.filter((p) => p.status === 'Sold').length
+  const rented = properties.filter((p) => p.status === 'Rented').length
+
+  const propertyStats = [
+    { label: 'Properties Under Mgmt.', value: fmtCount(properties.length), icon: 'Building2', tint: 'orange' },
+    { label: 'Portfolio Book Value', value: fmtCr(bookValue), icon: 'PiggyBank', tint: 'gold' },
+    { label: 'Capital Invested', value: fmtCr(invested), icon: 'Send', tint: 'blue' },
+    { label: 'Average ROI', value: roi == null ? '—' : `${roi.toFixed(1)}%`, icon: 'Gauge', tint: 'teal' },
+    { label: 'Rented / Sold', value: `${rented} / ${sold}`, icon: 'Handshake', tint: 'green' },
+  ]
+
+  const propertyFooterStats = [
+    { label: 'Total Properties', value: fmtCount(properties.length), icon: 'Building2' },
+    { label: 'Book Value', value: fmtCr(bookValue), icon: 'PiggyBank' },
+    { label: 'Capital Invested', value: fmtCr(invested), icon: 'Send' },
+    { label: 'Average ROI', value: roi == null ? '—' : `${roi.toFixed(1)}%`, icon: 'Gauge' },
+    { label: 'Rented', value: fmtCount(rented), icon: 'Home' },
+    { label: 'Sold', value: fmtCount(sold), icon: 'Handshake' },
+  ]
+
+  // Property lists, derived from live records.
+  const propertiesOverview = properties.slice(0, 4).map((p) => ({
+    name: p.name, location: p.location, value: p.current || p.purchase, status: p.status,
+  }))
+  const propertyDeals = properties.slice(0, 6).map((p) => ({
+    name: p.name, amount: p.current || p.purchase, status: p.status, roi: p.roi,
+    progress: PROP_PROGRESS[p.status] ?? 40,
+  }))
+  const propertyPerformance = properties
+    .map((p) => ({ property: p.name, roi: parsePct(p.roi) ?? 0 }))
+    .sort((a, b) => b.roi - a.roi)
+    .slice(0, 6)
 
   return (
     <div className="space-y-6">
@@ -133,7 +157,7 @@ export default function PropertyDashboard() {
                   <div className="text-xs text-slate-500">{p.location}</div>
                   <div className="mt-2 flex items-center justify-between">
                     <span className="font-bold text-gold-300">{p.value}</span>
-                    <Badge tone={p.tone}>{p.status}</Badge>
+                    <Badge>{p.status}</Badge>
                   </div>
                 </div>
               </div>

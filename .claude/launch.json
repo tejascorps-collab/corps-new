@@ -2,10 +2,17 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "fdi-prime-dev",
+      "name": "fdi-prime-api",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "port": 5173
+      "cwd": "server",
+      "port": 4100
+    },
+    {
+      "name": "fdi-prime-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "5174", "--strictPort"],
+      "port": 5174
     },
     {
       "name": "fdi-prime-preview",

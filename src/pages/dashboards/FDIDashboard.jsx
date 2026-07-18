@@ -1,12 +1,14 @@
 import { Card, CardHeader, StatCard, Badge, Icon, Progress, Avatar, initials } from '../../components/ui/Primitives'
 import { AumProfitChart, DonutChart, RingChart, FunnelViz } from '../../components/charts/Charts'
+import { aumProfitSeries, taskSummary, upcomingActivities } from '../../data/mockData'
 import {
-  dashboardStats, footerStats, aumProfitSeries, investmentDistribution,
-  projectPipeline, taskSummary, recentEnquiries, upcomingActivities, recentInvestments,
-} from '../../data/mockData'
+  totalAum, estimatedProfit, averageRoi, sectorDistribution, projectPipeline,
+  recentEnquiriesFrom, fmtCr, fmtCount,
+} from '../../lib/metrics'
 import { Crown, ChevronRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
+import { useData } from '../../context/DataContext'
 import { LinkAll, Legend, StatStrip, Hero } from './bits'
 
 const ringData = [
@@ -15,19 +17,51 @@ const ringData = [
   { name: 'Pending', value: taskSummary.pending, color: '#f59e0b' },
 ]
 
-// FDI-line KPIs: drop the property count, add active seekers.
-const fdiStats = [
-  ...dashboardStats.filter((s) => s.key !== 'props'),
-  { key: 'seekers', label: 'Investment Seekers', value: '86', delta: 9.4, up: true, icon: 'Building', tint: 'orange' },
-]
-
-const fdiFooterStats = footerStats.filter((s) => s.label !== 'Total Properties')
+// Seekers past the initial enquiry stage count as active FDI projects.
+const ACTIVE_STAGES = ['In Discussion', 'Proposal Sent', 'Due Diligence', 'Closed', 'Won', 'Funded']
+// Rough completion for a seeker based on how far it is down the pipeline.
+const STAGE_PROGRESS = { Enquiry: 15, 'In Discussion': 35, 'Proposal Sent': 55, 'Due Diligence': 75, Closed: 100, Won: 100, Funded: 100 }
 
 export default function FDIDashboard() {
   const { currentUser, pushNotification } = useApp()
+  const { investors, seekers, leads } = useData()
   const nav = useNavigate()
   const firstName = (currentUser?.name || 'there').split(' ')[0]
-  const fdiInvestments = recentInvestments.filter((r) => r.type === 'FDI Project')
+
+  // ---- Live-derived metrics (from the DB-backed collections) ----
+  const aum = totalAum(investors)
+  const profit = estimatedProfit(investors)
+  const roi = averageRoi(investors)
+  const activeProjects = seekers.filter((s) => ACTIVE_STAGES.includes(s.status)).length
+  const distribution = sectorDistribution(investors)
+  const pipeline = projectPipeline(seekers)
+  const enquiries = recentEnquiriesFrom(leads, 5)
+
+  const fdiStats = [
+    { key: 'aum', label: 'Total AUM', value: fmtCr(aum), icon: 'Wallet', tint: 'purple' },
+    { key: 'investors', label: 'Total Investors', value: fmtCount(investors.length), icon: 'Users', tint: 'blue' },
+    { key: 'projects', label: 'Active FDI Projects', value: fmtCount(activeProjects), icon: 'Briefcase', tint: 'teal' },
+    { key: 'profit', label: 'Est. Profit (YTD)', value: fmtCr(profit), icon: 'Coins', tint: 'gold' },
+    { key: 'seekers', label: 'Investment Seekers', value: fmtCount(seekers.length), icon: 'Building', tint: 'orange' },
+  ]
+
+  const fdiFooterStats = [
+    { label: 'Total Funds Raised', value: fmtCr(aum), icon: 'Target' },
+    { label: 'Total Investors', value: fmtCount(investors.length), icon: 'Users' },
+    { label: 'Investment Seekers', value: fmtCount(seekers.length), icon: 'Building2' },
+    { label: 'Active Projects', value: fmtCount(activeProjects), icon: 'Briefcase' },
+    { label: 'Total Leads', value: fmtCount(leads.length), icon: 'Filter' },
+    { label: 'Average ROI', value: roi == null ? '—' : `${roi.toFixed(1)}%`, icon: 'Gauge' },
+  ]
+
+  // Active FDI investments table, built from seekers in the pipeline.
+  const fdiInvestments = seekers.slice(0, 6).map((s) => ({
+    name: s.company,
+    amount: s.required,
+    status: s.status,
+    roi: s.roi,
+    progress: STAGE_PROGRESS[s.status] ?? 20,
+  }))
 
   return (
     <div className="space-y-6">
@@ -89,9 +123,9 @@ export default function FDIDashboard() {
           <CardHeader title="Investment Distribution" subtitle="By Sector" icon="PieChart"
             action={<button className="btn-ghost btn-sm" onClick={() => pushNotification({ type: 'system', title: 'View updated', text: 'Grouping investment distribution by sector.', tone: 'gold', icon: 'PieChart' })}>By Sector</button>} />
           <div className="card-pad grid grid-cols-2 items-center gap-2 pt-3">
-            <DonutChart data={investmentDistribution} centerBottom="₹265.40 Cr" />
+            <DonutChart data={distribution} centerBottom={fmtCr(aum)} />
             <div className="space-y-2.5">
-              {investmentDistribution.map((d) => (
+              {distribution.map((d) => (
                 <div key={d.name} className="flex items-center justify-between text-sm">
                   <span className="flex items-center gap-2">
                     <span className="h-2.5 w-2.5 rounded-sm" style={{ background: d.color }} />
@@ -107,7 +141,7 @@ export default function FDIDashboard() {
         <Card>
           <CardHeader title="FDI Project Pipeline" icon="Filter" action={<LinkAll to="/projects" />} />
           <div className="card-pad pt-3">
-            <FunnelViz data={projectPipeline} />
+            <FunnelViz data={pipeline} />
           </div>
         </Card>
       </div>
@@ -117,7 +151,7 @@ export default function FDIDashboard() {
         <Card className="xl:col-span-1">
           <CardHeader title="Recent Enquiries" action={<LinkAll to="/investors" />} />
           <div className="card-pad space-y-1 pt-3">
-            {recentEnquiries.map((e) => (
+            {enquiries.map((e) => (
               <div key={e.name} className="flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-white/[0.03]">
                 <Avatar initials={initials(e.name)} tint={e.type === 'Investor' ? 'blue' : 'purple'} />
                 <div className="min-w-0 flex-1">

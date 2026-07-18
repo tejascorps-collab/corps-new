@@ -32,9 +32,11 @@ export function StatStrip({ stats }) {
             <div>
               <div className="text-lg font-bold text-white">{s.value}</div>
               <div className="text-[11px] text-slate-500">{s.label}</div>
-              <div className="flex items-center gap-0.5 text-[11px] text-brand-green">
-                <ArrowUpRight size={11} /> {s.delta}%
-              </div>
+              {typeof s.delta === 'number' && (
+                <div className="flex items-center gap-0.5 text-[11px] text-brand-green">
+                  <ArrowUpRight size={11} /> {s.delta}%
+                </div>
+              )}
             </div>
           </div>
         ))}

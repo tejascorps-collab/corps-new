@@ -273,7 +273,7 @@ export default function Settings() {
           <div className="mt-5">
             <div className="section-title mb-3">SIP Registration</div>
             <FormGrid>
-              <TextField label="SIP Server / Domain" value={telDraft.sipServer} onChange={setTel('sipServer')} placeholder="pbx.thecorps.in" required />
+              <TextField label="SIP Server / Domain" value={telDraft.sipServer} onChange={setTel('sipServer')} placeholder="pbx.akontec.pro" required />
               <TextField label="Port" value={telDraft.sipPort} onChange={setTel('sipPort')} placeholder="5061" />
               <SelectField label="Transport" value={telDraft.sipTransport} onChange={setTel('sipTransport')} options={transports} />
               <TextField label="SIP Username / Extension" value={telDraft.sipUsername} onChange={setTel('sipUsername')} placeholder="agent01" required />
@@ -296,8 +296,8 @@ export default function Settings() {
             </FormGrid>
             <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.02] p-3.5 text-xs text-slate-400">
               <div className="mb-1.5 font-semibold text-slate-300">In your Twilio console, point the TwiML App at:</div>
-              <div>Voice request URL → <code className="text-gold-300">https://admin.thecorps.in/api/telephony/voice</code></div>
-              <div>Status callback URL → <code className="text-gold-300">https://admin.thecorps.in/api/telephony/status</code></div>
+              <div>Voice request URL → <code className="text-gold-300">https://app.akontec.pro/api/telephony/voice</code></div>
+              <div>Status callback URL → <code className="text-gold-300">https://app.akontec.pro/api/telephony/status</code></div>
               <div className="mt-1.5">Credentials are stored securely on the server (never in the browser). Leave a secret blank to keep the saved value.</div>
             </div>
           </div>
